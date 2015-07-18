@@ -1,0 +1,367 @@
+
+picalc.o:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000000000 <main>:
+#include <cmath>
+
+long double calc();
+
+int main(int argc, char* argv[])
+{
+   0:	55                   	push   rbp
+   1:	48 89 e5             	mov    rbp,rsp
+   4:	41 55                	push   r13
+   6:	41 54                	push   r12
+   8:	53                   	push   rbx
+   9:	48 83 ec 58          	sub    rsp,0x58
+   d:	89 7d cc             	mov    DWORD PTR [rbp-0x34],edi
+  10:	48 89 75 c0          	mov    QWORD PTR [rbp-0x40],rsi
+
+    // output of 16 means 128-bit floating point
+    //std::cout << sizeof(long double) << " " << std::numeric_limits<long double>::digits;
+    //std::cin.ignore().get();
+
+    unsigned long limit = 0;
+  14:	48 c7 45 d8 00 00 00 	mov    QWORD PTR [rbp-0x28],0x0
+  1b:	00 
+
+    if(argc > 1)
+  1c:	83 7d cc 01          	cmp    DWORD PTR [rbp-0x34],0x1
+  20:	7e 23                	jle    45 <main+0x45>
+    {
+        limit = strtol(argv[1], 0, 10);
+  22:	48 8b 45 c0          	mov    rax,QWORD PTR [rbp-0x40]
+  26:	48 83 c0 08          	add    rax,0x8
+  2a:	48 8b 00             	mov    rax,QWORD PTR [rax]
+  2d:	ba 0a 00 00 00       	mov    edx,0xa
+  32:	be 00 00 00 00       	mov    esi,0x0
+  37:	48 89 c7             	mov    rdi,rax
+  3a:	e8 00 00 00 00       	call   3f <main+0x3f>
+  3f:	48 89 45 d8          	mov    QWORD PTR [rbp-0x28],rax
+  43:	eb 20                	jmp    65 <main+0x65>
+    }
+    else
+    {
+        std::cout << "To what digit shall I calculate pi? ";
+  45:	be 00 00 00 00       	mov    esi,0x0
+  4a:	bf 00 00 00 00       	mov    edi,0x0
+  4f:	e8 00 00 00 00       	call   54 <main+0x54>
+        std::cin >> limit;
+  54:	48 8d 45 d8          	lea    rax,[rbp-0x28]
+  58:	48 89 c6             	mov    rsi,rax
+  5b:	bf 00 00 00 00       	mov    edi,0x0
+  60:	e8 00 00 00 00       	call   65 <main+0x65>
+    }
+
+    std::cout << "long double Pi = " << std::setprecision(limit) << calc() << std::endl;
+  65:	e8 00 00 00 00       	call   6a <main+0x6a>
+  6a:	db 7d b0             	fstp   TBYTE PTR [rbp-0x50]
+  6d:	4c 8b 65 b0          	mov    r12,QWORD PTR [rbp-0x50]
+  71:	44 8b 6d b8          	mov    r13d,DWORD PTR [rbp-0x48]
+  75:	48 8b 45 d8          	mov    rax,QWORD PTR [rbp-0x28]
+  79:	89 c7                	mov    edi,eax
+  7b:	e8 00 00 00 00       	call   80 <main+0x80>
+  80:	89 c3                	mov    ebx,eax
+  82:	be 00 00 00 00       	mov    esi,0x0
+  87:	bf 00 00 00 00       	mov    edi,0x0
+  8c:	e8 00 00 00 00       	call   91 <main+0x91>
+  91:	89 de                	mov    esi,ebx
+  93:	48 89 c7             	mov    rdi,rax
+  96:	e8 00 00 00 00       	call   9b <main+0x9b>
+  9b:	4c 89 24 24          	mov    QWORD PTR [rsp],r12
+  9f:	44 89 6c 24 08       	mov    DWORD PTR [rsp+0x8],r13d
+  a4:	48 89 c7             	mov    rdi,rax
+  a7:	e8 00 00 00 00       	call   ac <main+0xac>
+  ac:	be 00 00 00 00       	mov    esi,0x0
+  b1:	48 89 c7             	mov    rdi,rax
+  b4:	e8 00 00 00 00       	call   b9 <main+0xb9>
+    std::cout << "       acos Pi = " << acos(-1.0L) << std::endl;
+  b9:	be 00 00 00 00       	mov    esi,0x0
+  be:	bf 00 00 00 00       	mov    edi,0x0
+  c3:	e8 00 00 00 00       	call   c8 <main+0xc8>
+  c8:	48 89 c2             	mov    rdx,rax
+  cb:	48 b8 18 2d 44 54 fb 	movabs rax,0x400921fb54442d18
+  d2:	21 09 40 
+  d5:	48 89 45 a8          	mov    QWORD PTR [rbp-0x58],rax
+  d9:	f2 0f 10 45 a8       	movsd  xmm0,QWORD PTR [rbp-0x58]
+  de:	48 89 d7             	mov    rdi,rdx
+  e1:	e8 00 00 00 00       	call   e6 <main+0xe6>
+  e6:	be 00 00 00 00       	mov    esi,0x0
+  eb:	48 89 c7             	mov    rdi,rax
+  ee:	e8 00 00 00 00       	call   f3 <main+0xf3>
+    std::cout << "      acosl Pi = " << acosl(-1.0L) << std::endl;
+  f3:	be 00 00 00 00       	mov    esi,0x0
+  f8:	bf 00 00 00 00       	mov    edi,0x0
+  fd:	e8 00 00 00 00       	call   102 <main+0x102>
+ 102:	48 89 c1             	mov    rcx,rax
+ 105:	48 b8 35 c2 68 21 a2 	movabs rax,0xc90fdaa22168c235
+ 10c:	da 0f c9 
+ 10f:	ba 00 40 00 00       	mov    edx,0x4000
+ 114:	48 89 04 24          	mov    QWORD PTR [rsp],rax
+ 118:	89 54 24 08          	mov    DWORD PTR [rsp+0x8],edx
+ 11c:	48 89 cf             	mov    rdi,rcx
+ 11f:	e8 00 00 00 00       	call   124 <main+0x124>
+ 124:	be 00 00 00 00       	mov    esi,0x0
+ 129:	48 89 c7             	mov    rdi,rax
+ 12c:	e8 00 00 00 00       	call   131 <main+0x131>
+
+    std::cin.ignore().get();
+ 131:	bf 00 00 00 00       	mov    edi,0x0
+ 136:	e8 00 00 00 00       	call   13b <main+0x13b>
+ 13b:	48 89 c7             	mov    rdi,rax
+ 13e:	e8 00 00 00 00       	call   143 <main+0x143>
+    return 0;
+ 143:	b8 00 00 00 00       	mov    eax,0x0
+ 148:	eb 08                	jmp    152 <main+0x152>
+ 14a:	48 89 c7             	mov    rdi,rax
+ 14d:	e8 00 00 00 00       	call   152 <main+0x152>
+}
+ 152:	48 83 c4 58          	add    rsp,0x58
+ 156:	5b                   	pop    rbx
+ 157:	41 5c                	pop    r12
+ 159:	41 5d                	pop    r13
+ 15b:	5d                   	pop    rbp
+ 15c:	c3                   	ret    
+
+000000000000015d <_Z4calcv>:
+
+long double calc()
+{
+ 15d:	55                   	push   rbp
+ 15e:	48 89 e5             	mov    rbp,rsp
+ 161:	48 83 ec 60          	sub    rsp,0x60
+    unsigned long max = std::numeric_limits<unsigned long>::max();
+ 165:	e8 00 00 00 00       	call   16a <_Z4calcv+0xd>
+ 16a:	48 89 45 d0          	mov    QWORD PTR [rbp-0x30],rax
+    long double pi = 3.0L;
+ 16e:	48 b8 00 00 00 00 00 	movabs rax,0xc000000000000000
+ 175:	00 00 c0 
+ 178:	ba 00 40 00 00       	mov    edx,0x4000
+ 17d:	48 89 45 f0          	mov    QWORD PTR [rbp-0x10],rax
+ 181:	89 55 f8             	mov    DWORD PTR [rbp-0x8],edx
+    long double a=2.0L;
+ 184:	48 b8 00 00 00 00 00 	movabs rax,0x8000000000000000
+ 18b:	00 00 80 
+ 18e:	ba 00 40 00 00       	mov    edx,0x4000
+ 193:	48 89 45 e0          	mov    QWORD PTR [rbp-0x20],rax
+ 197:	89 55 e8             	mov    DWORD PTR [rbp-0x18],edx
+    long double stopper[2] {0L, 0L};
+ 19a:	b8 00 00 00 00       	mov    eax,0x0
+ 19f:	ba 00 00 00 00       	mov    edx,0x0
+ 1a4:	48 89 45 b0          	mov    QWORD PTR [rbp-0x50],rax
+ 1a8:	89 55 b8             	mov    DWORD PTR [rbp-0x48],edx
+ 1ab:	b8 00 00 00 00       	mov    eax,0x0
+ 1b0:	ba 00 00 00 00       	mov    edx,0x0
+ 1b5:	48 89 45 c0          	mov    QWORD PTR [rbp-0x40],rax
+ 1b9:	89 55 c8             	mov    DWORD PTR [rbp-0x38],edx
+    unsigned long i = 0;
+ 1bc:	48 c7 45 d8 00 00 00 	mov    QWORD PTR [rbp-0x28],0x0
+ 1c3:	00 
+
+    for(; i < max; i++)
+ 1c4:	e9 bd 00 00 00       	jmp    286 <_Z4calcv+0x129>
+    {
+        if(i % 2 == 0) //if even
+ 1c9:	48 8b 45 d8          	mov    rax,QWORD PTR [rbp-0x28]
+ 1cd:	83 e0 01             	and    eax,0x1
+ 1d0:	48 85 c0             	test   rax,rax
+ 1d3:	75 2b                	jne    200 <_Z4calcv+0xa3>
+            pi += 4.0L/((a)*(a+1.0L)*(a+2.0L));
+ 1d5:	db 6d e0             	fld    TBYTE PTR [rbp-0x20]
+ 1d8:	d9 e8                	fld1   
+ 1da:	de c1                	faddp  st(1),st
+ 1dc:	db 6d e0             	fld    TBYTE PTR [rbp-0x20]
+ 1df:	de c9                	fmulp  st(1),st
+ 1e1:	db 6d e0             	fld    TBYTE PTR [rbp-0x20]
+ 1e4:	db 2d 00 00 00 00    	fld    TBYTE PTR [rip+0x0]        # 1ea <_Z4calcv+0x8d>
+ 1ea:	de c1                	faddp  st(1),st
+ 1ec:	de c9                	fmulp  st(1),st
+ 1ee:	db 2d 00 00 00 00    	fld    TBYTE PTR [rip+0x0]        # 1f4 <_Z4calcv+0x97>
+ 1f4:	de f1                	fdivp  st(1),st
+ 1f6:	db 6d f0             	fld    TBYTE PTR [rbp-0x10]
+ 1f9:	de c1                	faddp  st(1),st
+ 1fb:	db 7d f0             	fstp   TBYTE PTR [rbp-0x10]
+ 1fe:	eb 29                	jmp    229 <_Z4calcv+0xcc>
+        else
+            pi -= 4.0L/((a)*(a+1.0L)*(a+2.0L));
+ 200:	db 6d e0             	fld    TBYTE PTR [rbp-0x20]
+ 203:	d9 e8                	fld1   
+ 205:	de c1                	faddp  st(1),st
+ 207:	db 6d e0             	fld    TBYTE PTR [rbp-0x20]
+ 20a:	de c9                	fmulp  st(1),st
+ 20c:	db 6d e0             	fld    TBYTE PTR [rbp-0x20]
+ 20f:	db 2d 00 00 00 00    	fld    TBYTE PTR [rip+0x0]        # 215 <_Z4calcv+0xb8>
+ 215:	de c1                	faddp  st(1),st
+ 217:	de c9                	fmulp  st(1),st
+ 219:	db 2d 00 00 00 00    	fld    TBYTE PTR [rip+0x0]        # 21f <_Z4calcv+0xc2>
+ 21f:	de f1                	fdivp  st(1),st
+ 221:	db 6d f0             	fld    TBYTE PTR [rbp-0x10]
+ 224:	de e1                	fsubp  st(1),st
+ 226:	db 7d f0             	fstp   TBYTE PTR [rbp-0x10]
+         * any further and it will become useless to
+         * continue with the calculations. Simply check
+         * if the current calculation of pi is equal to
+         * either of the last two. If it is, break.
+         */
+        if(pi == stopper[0] ||
+ 229:	db 6d b0             	fld    TBYTE PTR [rbp-0x50]
+ 22c:	db 6d f0             	fld    TBYTE PTR [rbp-0x10]
+ 22f:	df e9                	fucomip st,st(1)
+ 231:	7a 0b                	jp     23e <_Z4calcv+0xe1>
+ 233:	db 6d f0             	fld    TBYTE PTR [rbp-0x10]
+ 236:	df e9                	fucomip st,st(1)
+ 238:	dd d8                	fstp   st(0)
+ 23a:	74 5f                	je     29b <_Z4calcv+0x13e>
+ 23c:	eb 02                	jmp    240 <_Z4calcv+0xe3>
+ 23e:	dd d8                	fstp   st(0)
+           pi == stopper[1])
+ 240:	db 6d c0             	fld    TBYTE PTR [rbp-0x40]
+         * any further and it will become useless to
+         * continue with the calculations. Simply check
+         * if the current calculation of pi is equal to
+         * either of the last two. If it is, break.
+         */
+        if(pi == stopper[0] ||
+ 243:	db 6d f0             	fld    TBYTE PTR [rbp-0x10]
+ 246:	df e9                	fucomip st,st(1)
+ 248:	7a 0b                	jp     255 <_Z4calcv+0xf8>
+ 24a:	db 6d f0             	fld    TBYTE PTR [rbp-0x10]
+ 24d:	df e9                	fucomip st,st(1)
+ 24f:	dd d8                	fstp   st(0)
+ 251:	74 48                	je     29b <_Z4calcv+0x13e>
+ 253:	eb 02                	jmp    257 <_Z4calcv+0xfa>
+ 255:	dd d8                	fstp   st(0)
+           pi == stopper[1])
+               break;
+        else
+        {
+            stopper[0] = stopper[1];
+ 257:	48 8b 45 c0          	mov    rax,QWORD PTR [rbp-0x40]
+ 25b:	8b 55 c8             	mov    edx,DWORD PTR [rbp-0x38]
+ 25e:	48 89 45 b0          	mov    QWORD PTR [rbp-0x50],rax
+ 262:	89 55 b8             	mov    DWORD PTR [rbp-0x48],edx
+            stopper[1] = pi;
+ 265:	48 8b 45 f0          	mov    rax,QWORD PTR [rbp-0x10]
+ 269:	8b 55 f8             	mov    edx,DWORD PTR [rbp-0x8]
+ 26c:	48 89 45 c0          	mov    QWORD PTR [rbp-0x40],rax
+ 270:	89 55 c8             	mov    DWORD PTR [rbp-0x38],edx
+        }
+
+        a+=2.0L;
+ 273:	db 6d e0             	fld    TBYTE PTR [rbp-0x20]
+ 276:	db 2d 00 00 00 00    	fld    TBYTE PTR [rip+0x0]        # 27c <_Z4calcv+0x11f>
+ 27c:	de c1                	faddp  st(1),st
+ 27e:	db 7d e0             	fstp   TBYTE PTR [rbp-0x20]
+    long double pi = 3.0L;
+    long double a=2.0L;
+    long double stopper[2] {0L, 0L};
+    unsigned long i = 0;
+
+    for(; i < max; i++)
+ 281:	48 83 45 d8 01       	add    QWORD PTR [rbp-0x28],0x1
+ 286:	48 8b 45 d8          	mov    rax,QWORD PTR [rbp-0x28]
+ 28a:	48 3b 45 d0          	cmp    rax,QWORD PTR [rbp-0x30]
+ 28e:	0f 92 c0             	setb   al
+ 291:	84 c0                	test   al,al
+ 293:	0f 85 30 ff ff ff    	jne    1c9 <_Z4calcv+0x6c>
+ 299:	eb 01                	jmp    29c <_Z4calcv+0x13f>
+         * if the current calculation of pi is equal to
+         * either of the last two. If it is, break.
+         */
+        if(pi == stopper[0] ||
+           pi == stopper[1])
+               break;
+ 29b:	90                   	nop
+        }
+
+        a+=2.0L;
+    }
+
+    std::cout << i << " iterations completed!\n";
+ 29c:	48 8b 45 d8          	mov    rax,QWORD PTR [rbp-0x28]
+ 2a0:	48 89 c6             	mov    rsi,rax
+ 2a3:	bf 00 00 00 00       	mov    edi,0x0
+ 2a8:	e8 00 00 00 00       	call   2ad <_Z4calcv+0x150>
+ 2ad:	be 00 00 00 00       	mov    esi,0x0
+ 2b2:	48 89 c7             	mov    rdi,rax
+ 2b5:	e8 00 00 00 00       	call   2ba <_Z4calcv+0x15d>
+    return pi;
+ 2ba:	48 8b 45 f0          	mov    rax,QWORD PTR [rbp-0x10]
+ 2be:	8b 55 f8             	mov    edx,DWORD PTR [rbp-0x8]
+ 2c1:	48 89 45 a0          	mov    QWORD PTR [rbp-0x60],rax
+ 2c5:	89 55 a8             	mov    DWORD PTR [rbp-0x58],edx
+ 2c8:	db 6d a0             	fld    TBYTE PTR [rbp-0x60]
+ 2cb:	eb 08                	jmp    2d5 <_Z4calcv+0x178>
+ 2cd:	48 89 c7             	mov    rdi,rax
+ 2d0:	e8 00 00 00 00       	call   2d5 <_Z4calcv+0x178>
+}
+ 2d5:	c9                   	leave  
+ 2d6:	c3                   	ret    
+
+00000000000002d7 <_Z41__static_initialization_and_destruction_0ii>:
+ 2d7:	55                   	push   rbp
+ 2d8:	48 89 e5             	mov    rbp,rsp
+ 2db:	48 83 ec 10          	sub    rsp,0x10
+ 2df:	89 7d fc             	mov    DWORD PTR [rbp-0x4],edi
+ 2e2:	89 75 f8             	mov    DWORD PTR [rbp-0x8],esi
+ 2e5:	83 7d fc 01          	cmp    DWORD PTR [rbp-0x4],0x1
+ 2e9:	75 27                	jne    312 <_Z41__static_initialization_and_destruction_0ii+0x3b>
+ 2eb:	81 7d f8 ff ff 00 00 	cmp    DWORD PTR [rbp-0x8],0xffff
+ 2f2:	75 1e                	jne    312 <_Z41__static_initialization_and_destruction_0ii+0x3b>
+  extern wostream wclog;	/// Linked to standard error (buffered)
+#endif
+  //@}
+
+  // For construction of filebuffers for cout, cin, cerr, clog et. al.
+  static ios_base::Init __ioinit;
+ 2f4:	bf 00 00 00 00       	mov    edi,0x0
+ 2f9:	e8 00 00 00 00       	call   2fe <_Z41__static_initialization_and_destruction_0ii+0x27>
+ 2fe:	ba 00 00 00 00       	mov    edx,0x0
+ 303:	be 00 00 00 00       	mov    esi,0x0
+ 308:	bf 00 00 00 00       	mov    edi,0x0
+ 30d:	e8 00 00 00 00       	call   312 <_Z41__static_initialization_and_destruction_0ii+0x3b>
+ 312:	c9                   	leave  
+ 313:	c3                   	ret    
+
+0000000000000314 <_GLOBAL__sub_I_main>:
+ 314:	55                   	push   rbp
+ 315:	48 89 e5             	mov    rbp,rsp
+ 318:	be ff ff 00 00       	mov    esi,0xffff
+ 31d:	bf 01 00 00 00       	mov    edi,0x1
+ 322:	e8 b0 ff ff ff       	call   2d7 <_Z41__static_initialization_and_destruction_0ii>
+ 327:	5d                   	pop    rbp
+ 328:	c3                   	ret    
+
+Disassembly of section .text._ZSt12setprecisioni:
+
+0000000000000000 <_ZSt12setprecisioni>:
+   *  Sent to a stream object, this manipulator calls @c precision(__n) for
+   *  that object.
+  */
+  inline _Setprecision 
+  setprecision(int __n)
+  { return { __n }; }
+   0:	55                   	push   rbp
+   1:	48 89 e5             	mov    rbp,rsp
+   4:	89 7d fc             	mov    DWORD PTR [rbp-0x4],edi
+   7:	8b 45 fc             	mov    eax,DWORD PTR [rbp-0x4]
+   a:	5d                   	pop    rbp
+   b:	c3                   	ret    
+
+Disassembly of section .text._ZNSt14numeric_limitsImE3maxEv:
+
+0000000000000000 <_ZNSt14numeric_limitsImE3maxEv>:
+
+      static _GLIBCXX_CONSTEXPR unsigned long 
+      min() _GLIBCXX_USE_NOEXCEPT { return 0; }
+
+      static _GLIBCXX_CONSTEXPR unsigned long 
+      max() _GLIBCXX_USE_NOEXCEPT { return __LONG_MAX__ * 2UL + 1; }
+   0:	55                   	push   rbp
+   1:	48 89 e5             	mov    rbp,rsp
+   4:	48 c7 c0 ff ff ff ff 	mov    rax,0xffffffffffffffff
+   b:	5d                   	pop    rbp
+   c:	c3                   	ret    
