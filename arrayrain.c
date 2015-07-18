@@ -3,7 +3,7 @@
 * any other libs. This was one of those language-familiarization deals
 * where I wanted to avoid libraries. It doesn't quite do what I imagined
 * but I learned that it's not really possible with ANSI C. As usual,
-* reddit came to the rescue with some help: https://www.reddit.com/r/Cplusplus/comments/27yd9v/help_with_pi_and_limitations_on_c_and_x64
+* reddit came to the rescue with some help: https://www.reddit.com/r/C_Programming/comments/280jr3/backspaces_in_c_with_linux/
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
