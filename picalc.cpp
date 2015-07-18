@@ -1,9 +1,21 @@
-/************************************************
-* Just some practice with floating point numbers.
-* Got some help from Reddit: https://www.reddit.com/r/Cplusplus/comments/27yd9v/help_with_pi_and_limitations_on_c_and_x64
+/***********************************************************************
+* Just some practice with floating point numbers. Had a few quirks to
+* learn when it came to precision. Reddit came to the rescue with some
+* help: https://www.reddit.com/r/Cplusplus/comments/27yd9v/help_with_pi_and_limitations_on_c_and_x64
 *
-* I release this code into the public domain.
-************************************************/
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY* without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+***********************************************************************/
 
 #include <iostream>
 #include <cstdlib>
