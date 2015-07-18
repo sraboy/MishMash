@@ -1,7 +1,2 @@
 # Exercises
-Just random nibbles and bits: coding exercises, mini projects, kata, etc
-
-- picalc.cpp: Learning about floating point number precision by calculating pi. I needed, and got, some great help on [reddit](https://www.reddit.com/r/Cplusplus/comments/27yd9v/help_with_pi_and_limitations_on_c_and_x64).
-- picalc_disasm.txt: A disassembly used to help figure out some results that seemed funky. Follow along in the reddit thread.
-
-- recurscalc.cpp: Just playing with matrices.
+Just random nibbles and bits: coding exercises, mini projects, kata, etc. Most of the code is GPLv3 or Public Domain (where allowed by law). Some of these things were done quite a long time ago so it's possible I followed a tutorial or something. If you notice any code that bears a striking resemblance to someone else's, please let me know (submit an issue or pull request) so I can give credit where it is due and/or update the license appropriately.
