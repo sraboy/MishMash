@@ -1,7 +1,7 @@
 /***********************************************************************
 * This "multi_code" project was just me testing out some very simple
 * operations in various languages. The goal was to have each code 
-* snippet take the same exact input and produce the same exac output.
+* snippet take the same exact input and produce the same exact output.
 * The "input.txt" file is just two integers that are piped into each
 * binary, which multiplies them and prints the result.
 *
