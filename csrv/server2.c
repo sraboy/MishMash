@@ -1,3 +1,4 @@
+// Released into the public domain. -Steven Lavoie, 2016
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>

@@ -1,3 +1,4 @@
+# Released into the Public Domain. -Steven Lavoie, 2016
 import socket
 import sys
 
