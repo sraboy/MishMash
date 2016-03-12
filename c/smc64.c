@@ -10,7 +10,7 @@
 */
 
 #include <sys/mman.h> //for PROT_* constants
-#include <unistd.h>   //for sysconf()
+#include <unistd.h>   //for _SC_PAGESIZE
 #include <stdio.h>
 #include <string.h>   //for memcpy()
 
