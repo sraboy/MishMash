@@ -1,9 +1,9 @@
 /*
- * Title: smc64 (Self-Modifying Code)
+ * Title: Crackme Jenny
  * Author: Steven Lavoie, 2016
  * License: GPLv3 (http://www.gnu.org/licenses/gpl-3.0.html)
  * Compiled with gcc version 4.9.2 (Debian 4.9.2-19):
- *  gcc -std=c11 -lm -ggdb3 -o smc smc.c
+ *  gcc -std=c11 -lm -ggdb3 -c crackme_jenny.c
  * References:
  *  GCC Asm Ref: https://www.ibiblio.org/gferg/ldp/GCC-Inline-Assembly-HOWTO.html
  *  Idea From: https://gist.github.com/anonymous/e486705dc16c3a687d3f
@@ -15,7 +15,7 @@
 #include <string.h>   //for memcpy()
 #include <math.h>
 
-//#define DEBUG
+#define DEBUG
 
 extern int add(int x, int y);
 void mark_exe();
