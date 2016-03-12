@@ -6,8 +6,6 @@ A not-terribly-complicated crackme with a couple interesting twists. There are t
 2. Medium mode (debug): unstripped binary, no debug output
 3. Hard mode (release): stripped, no help at all
 
-The difference is that easy_mode hasn't been stripped and contains level-3 gdb debugging output
-
 # Scenario
 
 You're a consultant being hired to reverse engineer this key generator. Your client has the activation key (13284645-2427364-104376652) but lost the username and password used to generate that key in a recent datacenter catastrophe.
