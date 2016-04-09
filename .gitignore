@@ -1,1 +1,24 @@
+#Ignore All
+*
+
+# Ignore files without extensions
+!*.*
+
+# Unignore all dirs
+!*/
+
+### Above will ignore binaries by ignoring files without extensions ###
+
+# Normal output files
 *.out
+*.o
+*.ko
+
+# Make output junk
+*.symvers
+*.order
+*.cmd
+
+
+# Directories
+*/bin/*
