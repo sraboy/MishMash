@@ -7,7 +7,7 @@
 # Unignore all dirs
 !*/
 
-### Above will ignore binaries by ignoring files without extensions ###
+### Above will ignore all files without extensions, like binaries ###
 
 # Normal output files
 *.out
