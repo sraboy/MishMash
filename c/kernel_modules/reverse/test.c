@@ -17,7 +17,7 @@ int main(int argc, char ** argv) {
         return 0;
     }
     
-    char *phrase = "this is a phrase";
+    char *phrase = "are you as clever as i am";
     int len = strlen(phrase);
     if(fork()) {
         while(1) {
@@ -28,9 +28,8 @@ int main(int argc, char ** argv) {
         char buf[len + 1];
         while(1) {
             read(fd, buf, len);
-            buf[len] = '\0'; //the null gets lopped off by the module
-            printf("Word: %s\t\t", phrase);
-            printf("Read: %s\n", buf);
+            printf("Word: %s?\t\t", phrase);
+            printf("Read: %s?\n", buf);
             sleep(1);
         }
     }

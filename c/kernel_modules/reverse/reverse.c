@@ -109,9 +109,13 @@ static int reverse_read(struct file *filp, char __user *out, size_t size, loff_t
         }
     }
 
-    size = min(size, (size_t)(buf->end - buf->read_ptr));
-
-    if(copy_to_user(out, buf->read_ptr, size)) {
+    // need to add the null terminator
+    buf->end +=1;
+    *(buf->end) = '\0';
+    
+    size = min(size + 1, (size_t)(buf->end - buf->read_ptr));
+    pr_devel("String size: %d\n", size);
+    if(copy_to_user(out, buf->read_ptr, size/* + 1*/)) {
         retval = -EFAULT;
         goto out_unlock;
     }
@@ -150,7 +154,7 @@ static int reverse_write(struct file *filp, const char *in, size_t size, loff_t 
 
     if(buf->end > buf->data)
         reverse_phrase(buf->data, buf->end - 1);
-    
+
     wake_up_interruptible(&buf->read_queue);
     retval = size;
     
