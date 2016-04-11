@@ -18,7 +18,10 @@
 *.symvers
 *.order
 *.cmd
+.tmp_versions/
+*.mod.c
 
-
-# Directories
-*/bin/*
+# Other Directories
+bin/
+Debug/
+Release/
