@@ -13,6 +13,7 @@
 *.out
 *.o
 *.ko
+*.bin
 
 # Make output junk
 *.symvers
