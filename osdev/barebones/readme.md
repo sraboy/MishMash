@@ -19,8 +19,10 @@ See: http://wiki.osdev.org/Bare_Bones. Cheat sheet:
 
 # Run
 
-In my VirtualBox VM (amd64 Debian guest on amd64 Win10 host), it's still possible to run qemu:
+In my VirtualBox VM (amd64 Debian guest on amd64 Win10 host), it's still possible to run QEMU:
 
 `qemu-system-i386 -kernel myos.bin`
 
-If that's the case, GRUB isn't needed. Otherwise, see the tutorial for building an ISO and booting that with qemu.
+If that's the case, GRUB isn't needed. Otherwise, see the tutorial for building an ISO and booting that with QEMU.
+
+WARNING: If you click in the QEMU window, it will capture your mouse. VirtualBox's default host key is CTRL+ALT, just like QEMU's. If you get your mouse stuck, simply change your host key to CTRL+Shift or something so CTRL+ALT can actually be passed to QEMU.
