@@ -1,100 +1,181 @@
 #!/bin/bash
 
-# Don't add any additional output to this function since stdout is what
-# populates the actual array.
-getautostarts() {
-    read -ra ldpaths <<<`ldconfig -v 2>/dev/null | grep -v ^$'\t'`
 
+# This function will dig through systemd's unit files to find all the
+# various services that may start at boot. 
+autostarts=()
+getautostarts() {
+    # Get all the unit files for systemd's services.
+    # We exclude "masked" since those services are prevented from starting
+    # both automatically and manually. Services that are "disabled" can
+    # be started manually (maybe by some other script somewhere), so we 
+    # include them. You could change "masked" to "disabled" if you were
+    # only concerned with what systemd was configured to start on its 
+    # own; you don't actually have to exclude "masked" here (since those 
+    # files are empty anyway) but I left it in to make it a simple 
+    # cut/paste to change to "disabled" when that's what I need.
+    MSG="Collecting systemd unit files..."
+    echo "$MSG"
+    read -ra unitfiles <<< $(systemctl list-unit-files --type=service |
+                   grep -v masked | head -n-2 | awk 'NR>1{print $1}')
+    
+    echo -e "\r\033[1A\033[K$MSG Done!" && echo -en "\033[K"
+    
+    MSG="Checking paths..."
+    echo "$MSG"
+    paths=()
+    for f in "${unitfiles[@]}"; do
+        #echo -en "\e[1A"
+        echo -en "\r\033[KLooking for $f"
+        # We have to search for user-mode and system-mode unit files
+        # separately because each mode has a different set of directories
+        # to search and each mode searches those directories in a 
+        # specific order. We only take the first unit file found because 
+        # we're searching the directories in the same order of precedence 
+        # systemd does. The first unit file found is the only one that 
+        # is executed. See `man 7 file-hierarchy`.
+        
+        # First, we'll search for a user-mode unit file.
+        paths+=($(find $XDG_CONFIG_HOME/systemd/user    \
+                       /root/.config/systemd/user       \
+                       /home/*/.config/systemd/user     \
+                       /etc/systemd/user                \
+                       $XDG_RUNTIME_DIR/systemd/user    \
+                       /run/systemd/user                \
+                       $XDG_DATA_HOME/systemd/user      \
+                       $HOME/.local/share/systemd/user  \
+                       /usr/lib/systemd/user            \
+                       -type f -name $f -print -quit 2>/dev/null))
+
+        # Next, a system-mode unit file. We also search the /lib path
+        # since that will include the defaults provided by the package,
+        # though it may simply link to /usr/lib.
+        paths+=($(find /etc/systemd/system/     \
+                       /run/systemd/system/     \
+                       /usr/lib/systemd/system/ \
+                       /lib/systemd/system/     \
+                       -type f -name $f -print -quit 2>/dev/null))
+    done
+    echo -e "\r\033[1A\033[K$MSG Done!" && echo -en "\033[K"
+
+    execfiles=()
+    MSG="Parsing configurations..."
+    echo "$MSG"
+    for path in "${paths[@]}"; do
+        echo -en "\r\033[KProcessing $path..."
+        # We look at the content of every unit file and look for the 
+        # ExecStart, ExecStartPre and ExecStartPost config options,
+        # excluding comments via grep. We use sed to extract the binary 
+        # name, sans arguments, and then, if it happens to be a link, 
+        # we get the target. Last, remove duplicates since a lot of the
+        # services just pass different options to a binary for Start/Stop.
+        execfiles+=($(cat $path | grep -e "^ExecStart" |
+                           sed 's/\(ExecStart\|ExecStartPre\|ExecStartPost\)=-*\([^ ]\+\).*/\2/' |
+                           xargs -i{} readlink -f {} | sort -u))
+    done
+    echo -e "\r\033[1A\033[K$MSG Done!" && echo -en "\033[K"
+
+    # Get all the paths that `ld` would check for the libraries 
+    # the executables may import.
+    MSG="Getting library search paths..."
+    echo "$MSG"
+    read -ra ldpaths <<< $(ldconfig -v 2>/dev/null | grep -v ^$'\t')
+    
+    # Get rid of the trailing colon.
     for ((i=0; i<${#ldpaths[@]}; i++)); do
         ldpaths[$i]="${ldpaths[$i]::-1}"
     done
+    echo -e "\r\033[1A\033[K$MSG Done!" && echo -en "\033[K"
 
-    for f in `systemctl list-unit-files --type=service |
-              grep -v disabled | head -n-2 | awk 'NR>1{print $1}'`; do
-        path="/lib/systemd/system/$f"
-        if [ -e "$path" ]; then
-            echo "$path"
-            else path="/etc/systemd/system/$f"
-            if [ -e "$path" ]; then
-                echo "$path"
-            fi
-        fi
-        read -ra execfiles <<< `cat $path | grep "ExecStart" |
-                           sed 's/\(ExecStart\|ExecStartPre\|ExecStartPost\)=-*\([^ ]\+\).*/\2/' |
-                           xargs -i{} readlink -f {} 2>/dev/null |
-                                sort -u`
-        for ef in "${execfiles[@]}"; do
-            if [ ! -z "${ef// }" ] && [ -e "$ef" ]; then
-                    echo "$ef"
-                    read -ra libs <<<`objdump -p $ef 2>/dev/null |
-                                    grep NEEDED | awk '{print $2}'`
-                    for lib in "${libs[@]}"; do
-                        for prefix in "${ldpaths[@]}"; do
-                            if [ -e "$prefix/$lib" ]; then
-                                readlink -f "$prefix/$lib" 2>/dev/null
-                            fi
-                        done
-                    done
-            fi
+    # Now we iterate through all the executables launched by systemd
+    # and check their dependencies. What tools are available will
+    # dictate the best way to do this. Using `ldd` is the best
+    # route since it will also find dependencies of dependencies.
+    #
+    # ldd /bin/ls | awk '{print $1}'
+    # readelf -d /bin/ls | grep NEEDED | awk '{print $5}' | sed 's/\[\|\]//g'
+    # objdump -p /bin/ls | grep NEEDED | awk '{print $2}'
+    MSG="Checking for ELF dependencies..."
+    echo "$MSG"
+    for ef in "${execfiles[@]}"; do
+        echo -en "\r\033[KChecking $ef"
+        # Save the binary itself
+        [[ -e "$ef" ]] && autostarts+=("$ef")
+        
+        read -ra libs <<<`objdump -p $ef 2>/dev/null | grep NEEDED | awk '{print $2}'`
+        
+        # Find and save the full path of each dependency
+        for lib in "${libs[@]}"; do
+            for prefix in "${ldpaths[@]}"; do
+                if [ -e "$prefix/$lib" ]; then
+                    autostarts+=(`readlink -f "$prefix/$lib"`)
+                fi
+            done
         done
     done
+    echo -e "\r\033[1A\033[K$MSG Done!" && echo -en "\033[K"
+    autostarts=($(printf "%s\n" "${autostarts[@]}" | sort -u))
+    printf "Identified ${#autostarts[@]} auto-starting executables\\dependencies\n"
 }
 
-missed=0
 checkmissed() {
+    MSG="Checking for missed files..."
+    echo "$MSG"
+    missed=0
     for f in "${autostarts[@]}"; do
         if [[ ! " ${files[*]} " == *"$f"* ]]; then
-            echo "An autostart binary loads the non-executable library: $f"
+            echo -en "\r\033[KAdding: $f"
             files+=("$f")
             missed=$((missed+1))
         fi
     done
+    echo -e "\r\033[1A\033[K$MSG Done!" && echo -en "\033[K"
+    echo "Added $missed missed files"
 }
-
-
-echo "Checking systemd unit files for auto-starts..."
-read -ra autostarts<<<`getautostarts | grep -v -e "^.*systemd.*\.service" | sort -u`
-rootloc="/"
-echo "Finding all executables in $rootloc..."
-# We could use `find / -executable -type f` but this is more portable.
-# Still, `-type f` isn't always supported. Obviously, we'll miss the
-# files that could be executables but not marked with the required
-# permissions bit. That's still a potential vector of attack but this
-# covers most cases and, later, we'll get imported libraries too.
-read -ra files <<< `find $rootloc -perm /111 -type f 2>/dev/null`
-echo "Found ${#files[@]} executables"
-echo "Checking for missed files..."
-checkmissed
-echo "Added $missed missed files"
-
-elf32="ELF 32-bit"
-elf64="ELF 64-bit"
-elfcount=0
-socketcount=0
-suidrootcount=0
-autostartcount=0
-declare -a table
 
 #finding exes
 #finding elves
 #merging lists
-
 main() {
     if [ "$EUID" -ne 0 ]; then
         (>&2 echo "Please run as root!")
         exit
     fi
-    echo "Checking ${#files[@]} executables. Please wait..."
-    echo
+        
+    getautostarts
+
+    rootloc="/"
+    MSG="Finding all executables in $rootloc..."
+    echo "$MSG"
+    # We could use `find / -executable -type f` but this is more 
+    # portable (though `-type f` isn't always supported either). We'll 
+    # end up ignoring ACL rules without -executable and, obviously, 
+    # we'll miss executables that aren't marked with the required
+    # permissions bit. That's still a potential vector of attack but this
+    # covers most cases and, later, we'll get imported libraries too.
+    read -ra files <<< `find $rootloc -perm /111 -type f 2>/dev/null`
+    echo -e "\r\033[1A\033[K$MSG Done!" && echo -en "\033[K"
+    echo "Found ${#files[@]} executables"
+    
+    # Since we missed non-executable ELFs, we use this to add the ones
+    # we identified through getautostarts.
+    checkmissed
+    
+    elf32="ELF 32-bit"
+    elf64="ELF 64-bit"
+    elfcount=0
+    socketcount=0
+    suidrootcount=0
+    autostartcount=0
+    table=()
+    MSG="Checking executables..."
+    echo "$MSG"
     # Now we'll iterate and get `file` output for each executable and
     # also find all ELFs which import the functions we're interested in.
     # You should manually check a few files with `objdump -T` to see
     # exactly what the output looks like so you can `grep` properly.
     for ((i=0; i<${#files[@]}; i++)); do
-            
-            # Fancy shmancy output
-            echo -en "\e[1A"
-            echo -e "\e[0KChecking file $((i+1))/${#files[@]}: ${files[$i]}" &&
+            echo -en "\r\033[KChecking file $((i+1))/${#files[@]}: ${files[$i]}" &&
             
             # We add the output of `file` to our table so we know what
             # we're looking at. However, `file` outputs:
@@ -132,14 +213,14 @@ main() {
                 table[$i]+="autostart"
             fi
     done
+    echo -e "\r\033[1A\033[K$MSG Done!" && echo -en "\033[K"
+    echo "------------------------------------"
+    echo "   Executables: ${#files[@]}"
+    echo "          ELFs: $elfcount"
+    echo "    SUID Roots: $suidrootcount"
+    echo "    Autostarts: $autostartcount"
+    echo "Imports socket: $socketcount"
+    #echo "DEBUG Autostarts array count: ${#autostarts[@]}"
+    printf "%s\n" "${table[@]}" > files.txt
 }
-main "$@"
-echo "Done!"    
-echo "------------------------------------"
-echo "   Executables: ${#files[@]}"
-echo "          ELFs: $elfcount"
-echo "    SUID Roots: $suidrootcount"
-echo "    Autostarts: $autostartcount"
-echo "Imports socket: $socketcount"
-#echo "DEBUG Autostarts array count: ${#autostarts[@]}"
-printf "%s\n" "${table[@]}" > files.txt
+time main "$@"
