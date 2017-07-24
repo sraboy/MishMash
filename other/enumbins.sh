@@ -149,22 +149,36 @@ main() {
     getautostarts
 
     rootloc="/"
-    MSG="Finding all executables in $rootloc..."
-    echo "$MSG"
-    # We could use `find / -executable -type f` but this is more 
-    # portable (though `-type f` isn't always supported either). We'll 
-    # end up ignoring ACL rules without -executable and, obviously, 
-    # we'll miss executables that aren't marked with the required
-    # permissions bit. That's still a potential vector of attack but this
-    # covers most cases and, later, we'll get imported libraries too.
-    # Note that we also ignore /mnt and /media.
-    mapfile -t files < <(find $rootloc -perm /111 -type f -not -path "/mnt/" -not -path "/media/*" 2>/dev/null)
-    echo -e "\r\033[1A\033[K$MSG Done!" && echo -en "\033[K"
-    echo "Found ${#files[@]} executables"
+    # Note that adding the second find command dramatically extends the 
+    # script's runtime. All it's doing is finding ELFs that happen to 
+    # not be marked executable since the first find command misses 
+    # those. My actual target system was a small embedded installation 
+    # so this only went from ~3min to ~8min. My development system,
+    # however, went from ~12min to ~31min.
+    # NOTES:
+    # - Use `-perm /111` if you don't have `-executable`
+    # - Various versions of the second find command were tested to find
+    #   the fastest throughput and it doesn't get any better than this.
     
-    # Since we missed non-executable ELFs, we use this to add the ones
-    # we identified through getautostarts.
-    checkmissed
+    # Quicker, but less accurate    
+    #MSG="Finding all executables in $rootloc..."
+    #echo "$MSG"
+    #mapfile -t files < <(find $rootloc -executable -type f -not -path "/mnt/*" -not -path "/media/*" 2>/dev/null)
+    #
+    ## Since we missed non-executable ELFs, we use this to add the ones
+    ## we may have identified through getautostarts. Comment out if you
+    ## use the command below instead. On my test system, this found an
+    ## additional 3 files. On my dev system, it found 112. YMMV.
+    #checkmissed
+    
+    # Use me if you've got time to spare
+    MSG="Finding all executables & ELFs in $rootloc..."
+    echo "$MSG"
+    mapfile -t files < <(find $rootloc -executable -type f -not -path "/mnt/*" -not -path "/media/*" 2>/dev/null &
+                         find $rootloc -not -executable -type f -not -path "/mnt/*" -not -path "/media/*" 2>/dev/null -print0 | xargs -0 file {} | sed -n '/ELF/p' | sed 's/:.*//g' & wait)
+    
+    echo -e "\r\033[1A\033[K$MSG Done!" && echo -en "\033[K"
+    echo "Found ${#files[@]} files"
     
     elf32="ELF 32-bit"
     elf64="ELF 64-bit"
