@@ -190,7 +190,7 @@ main() {
             # false-positives if a file is named "ELF (32|64)-bit."
             if [[ "${table[$i]}" == *"$elf32"* ]] || [[ "${table[$i]}" == *"$elf64"* ]]; then
                 elfcount=$((elfcount+1))
-                if $(objdump -T "\"${files[$i]}\"" 2>/dev/null | grep -q "GLIBC_2.4   socket"); then
+                if $(objdump -T "${files[$i]}" 2>/dev/null | grep -q "GLIBC_2.4   socket"); then
                     socketcount=$((socketcount+1))
                     table[$i]+="\"socket\","
                 else
