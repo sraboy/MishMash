@@ -229,7 +229,7 @@ main() {
     echo "    Autostarts: $autostartcount"
     echo "Imports socket: $socketcount"
     #echo "DEBUG Autostarts array count: ${#autostarts[@]}"
-    printf "%s\n" "${table[@]}" > files.txt
+    printf "%s\n" "${table[@]}" > $(hostname -s)_files.txt
     echo "------------------------------------"
 }
 exec 3>&1
