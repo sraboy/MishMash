@@ -2,28 +2,28 @@
 
 
 # This function will dig through systemd's unit files to find all the
-# various services that may start at boot. 
+# various services that may start at boot.
 autostarts=()
 getautostarts() {
     # Get all the unit files for systemd's services.
     # We exclude "masked" since those services are prevented from starting
     # both automatically and manually. Services that are "disabled" can
-    # be started manually (maybe by some other script somewhere), so we 
+    # be started manually (maybe by some other script somewhere), so we
     # include them. You could change "masked" to "disabled" if you were
-    # only concerned with what systemd was configured to start on its 
-    # own; you don't actually have to exclude "masked" here (since those 
-    # files are empty anyway) but I left it in to make it a simple 
+    # only concerned with what systemd was configured to start on its
+    # own; you don't actually have to exclude "masked" here (since those
+    # files are empty anyway) but I left it in to make it a simple
     # cut/paste to change to "disabled" when that's what I need.
     MSG="Collecting systemd unit files..."
     echo "$MSG"
-    
+
     # We declare first so we keep the array local
     declare -a unitfiles
     read -ra unitfiles <<< $(systemctl list-unit-files --type=service |
                    grep -v masked | head -n-2 | awk 'NR>1{print $1}')
-    
+
     echo -e "\r\033[1A\033[K$MSG Done!" && echo -en "\033[K"
-    
+
     MSG="Checking paths..."
     echo "$MSG"
     local paths=()
@@ -32,12 +32,12 @@ getautostarts() {
         echo -en "\r\033[KLooking for $f"
         # We have to search for user-mode and system-mode unit files
         # separately because each mode has a different set of directories
-        # to search and each mode searches those directories in a 
-        # specific order. We only take the first unit file found because 
-        # we're searching the directories in the same order of precedence 
-        # systemd does. The first unit file found is the only one that 
+        # to search and each mode searches those directories in a
+        # specific order. We only take the first unit file found because
+        # we're searching the directories in the same order of precedence
+        # systemd does. The first unit file found is the only one that
         # is executed. See `man 7 file-hierarchy`.
-        
+
         # First, we'll search for a user-mode unit file.
         paths+=($(find $XDG_CONFIG_HOME/systemd/user    \
                        /root/.config/systemd/user       \
@@ -66,10 +66,10 @@ getautostarts() {
     echo "$MSG"
     for path in "${paths[@]}"; do
         echo -en "\r\033[KProcessing $path..."
-        # We look at the content of every unit file and look for the 
+        # We look at the content of every unit file and look for the
         # ExecStart, ExecStartPre and ExecStartPost config options,
-        # excluding comments via grep. We use sed to extract the binary 
-        # name, sans arguments, and then, if it happens to be a link, 
+        # excluding comments via grep. We use sed to extract the binary
+        # name, sans arguments, and then, if it happens to be a link,
         # we get the target. Last, remove duplicates since a lot of the
         # services just pass different options to a binary for Start/Stop.
         execfiles+=($(cat $path | grep -e "^ExecStart" |
@@ -78,13 +78,13 @@ getautostarts() {
     done
     echo -e "\r\033[1A\033[K$MSG Done!" && echo -en "\033[K"
 
-    # Get all the paths that `ld` would check for the libraries 
+    # Get all the paths that `ld` would check for the libraries
     # the executables may import.
     MSG="Getting library search paths..."
     echo "$MSG"
     declare -a ldpaths
     read -ra ldpaths <<< $(ldconfig -v 2>/dev/null | grep -v ^$'\t')
-    
+
     # Get rid of the trailing colon.
     for ((i=0; i<${#ldpaths[@]}; i++)); do
         ldpaths[$i]="${ldpaths[$i]::-1}"
@@ -105,9 +105,9 @@ getautostarts() {
         echo -en "\r\033[KChecking $ef"
         # Save the binary itself
         [[ -e "$ef" ]] && autostarts+=("$ef")
-        
+
         mapfile -t libs < <(objdump -p "$ef" 2>/dev/null | grep NEEDED | awk '{print $2}')
-        
+
         # Find and save the full path of each dependency
         for lib in "${libs[@]}"; do
             for prefix in "${ldpaths[@]}"; do
@@ -137,30 +137,27 @@ checkmissed() {
     echo "Added $missed missed files"
 }
 
-#finding exes
-#finding elves
-#merging lists
 main() {
     if [ "$EUID" -ne 0 ]; then
         (>&2 echo "Please run as root!")
         exit
     fi
-        
+
     getautostarts
 
     rootloc="/"
-    # Note that adding the second find command dramatically extends the 
-    # script's runtime. All it's doing is finding ELFs that happen to 
-    # not be marked executable since the first find command misses 
-    # those. My actual target system was a small embedded installation 
+    # Note that adding the second find command dramatically extends the
+    # script's runtime. All it's doing is finding ELFs that happen to
+    # not be marked executable since the first find command misses
+    # those. My actual target system was a small embedded installation
     # so this only went from ~3min to ~8min. My development system,
     # however, went from ~12min to ~31min.
     # NOTES:
     # - Use `-perm /111` if you don't have `-executable`
     # - Various versions of the second find command were tested to find
     #   the fastest throughput and it doesn't get any better than this.
-    
-    # Quicker, but less accurate    
+
+    # Quicker, but less accurate
     #MSG="Finding all executables in $rootloc..."
     #echo "$MSG"
     #mapfile -t files < <(find $rootloc -executable -type f -not -path "/mnt/*" -not -path "/media/*" 2>/dev/null)
@@ -170,16 +167,16 @@ main() {
     ## use the command below instead. On my test system, this found an
     ## additional 3 files. On my dev system, it found 112. YMMV.
     #checkmissed
-    
+
     # Use me if you've got time to spare
     MSG="Finding all executables & ELFs in $rootloc..."
     echo "$MSG"
     mapfile -t files < <(find $rootloc -executable -type f -not -path "/mnt/*" -not -path "/media/*" 2>/dev/null &
                          find $rootloc -not -executable -type f -not -path "/mnt/*" -not -path "/media/*" 2>/dev/null -print0 | xargs -0 file {} | sed -n '/ELF/p' | sed 's/:.*//g' & wait)
-    
+
     echo -e "\r\033[1A\033[K$MSG Done!" && echo -en "\033[K"
     echo "Found ${#files[@]} files"
-    
+
     elf32="ELF 32-bit"
     elf64="ELF 64-bit"
     elfcount=0
@@ -194,8 +191,8 @@ main() {
     # You should manually check a few files with `objdump -T` to see
     # exactly what the output looks like so you can `grep` properly.
     for ((i=0; i<${#files[@]}; i++)); do
-            echo -en "\r\033[KChecking file $((i+1))/${#files[@]}: ${files[$i]}" 
-            
+            echo -en "\r\033[KChecking file $((i+1))/${#files[@]}: ${files[$i]}"
+
             # We add the output of `file` to our table so we know what
             # we're looking at. However, `file` outputs:
             # "filename: <stuff>". We don't want that space so we use -b
@@ -226,7 +223,7 @@ main() {
             fi
 
             # Last, we check if the file was also found in our autostarts
-            # list, indicating that it is launched by a unit file of 
+            # list, indicating that it is launched by a unit file of
             # systemd or is a related dependency.
             if [[ " ${autostarts[@]} "  =~ " ${files[$i]} " ]] ; then
                 autostartcount=$((autostartcount+1))
