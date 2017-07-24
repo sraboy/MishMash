@@ -28,7 +28,6 @@ getautostarts() {
     echo "$MSG"
     local paths=()
     for f in "${unitfiles[@]}"; do
-        #echo -en "\e[1A"
         echo -en "\r\033[KLooking for $f"
         # We have to search for user-mode and system-mode unit files
         # separately because each mode has a different set of directories
@@ -205,7 +204,7 @@ main() {
             # false-positives if a file is named "ELF (32|64)-bit."
             if [[ "${table[$i]}" == *"$elf32"* ]] || [[ "${table[$i]}" == *"$elf64"* ]]; then
                 elfcount=$((elfcount+1))
-                if $(objdump -T "${files[$i]}" 2>/dev/null | grep -q "GLIBC_2.4   socket"); then
+                if objdump -T "${files[$i]}" 2>/dev/null | grep -q "GLIBC_2.4   socket"; then
                     socketcount=$((socketcount+1))
                     table[$i]+="\"socket\","
                 else
@@ -239,7 +238,6 @@ main() {
     echo "    SUID Roots: $suidrootcount"
     echo "    Autostarts: $autostartcount"
     echo "Imports socket: $socketcount"
-    #echo "DEBUG Autostarts array count: ${#autostarts[@]}"
     printf "%s\n" "${table[@]}" > $(hostname -s)_files.txt
     echo "------------------------------------"
 }
