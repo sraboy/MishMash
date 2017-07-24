@@ -56,7 +56,7 @@ getautostarts() {
                        /lib/systemd/system/     \
                        -type f -name $f -print -quit 2>/dev/null))
     done
-    echo -e "\r\033[1A\033[K$MSG Done!" && echo -en "\033[K"
+    echo -e "\r\033[1A\033[K$MSG Found ${#paths[@]} unit files. Done!" && echo -en "\033[K"
 
     execfiles=()
     MSG="Parsing configurations..."
@@ -102,13 +102,13 @@ getautostarts() {
         # Save the binary itself
         [[ -e "$ef" ]] && autostarts+=("$ef")
         
-        read -ra libs <<<`objdump -p $ef 2>/dev/null | grep NEEDED | awk '{print $2}'`
+        mapfile -t libs < <(objdump -p "$ef" 2>/dev/null | grep NEEDED | awk '{print $2}')
         
         # Find and save the full path of each dependency
         for lib in "${libs[@]}"; do
             for prefix in "${ldpaths[@]}"; do
                 if [ -e "$prefix/$lib" ]; then
-                    autostarts+=(`readlink -f "$prefix/$lib"`)
+                    autostarts+=( $(readlink -f "$prefix/$lib") )
                 fi
             done
         done
@@ -153,7 +153,8 @@ main() {
     # we'll miss executables that aren't marked with the required
     # permissions bit. That's still a potential vector of attack but this
     # covers most cases and, later, we'll get imported libraries too.
-    read -ra files <<< `find $rootloc -perm /111 -type f 2>/dev/null`
+    # Note that we also ignore /mnt and /media.
+    mapfile -t files < <(find $rootloc -perm /111 -type f -not -path "/mnt/" -not -path "/media/*" 2>/dev/null)
     echo -e "\r\033[1A\033[K$MSG Done!" && echo -en "\033[K"
     echo "Found ${#files[@]} executables"
     
@@ -175,24 +176,25 @@ main() {
     # You should manually check a few files with `objdump -T` to see
     # exactly what the output looks like so you can `grep` properly.
     for ((i=0; i<${#files[@]}; i++)); do
-            echo -en "\r\033[KChecking file $((i+1))/${#files[@]}: ${files[$i]}" &&
+            echo -en "\r\033[KChecking file $((i+1))/${#files[@]}: ${files[$i]}" 
             
             # We add the output of `file` to our table so we know what
             # we're looking at. However, `file` outputs:
             # "filename: <stuff>". We don't want that space so we use -b
             # to skip outputting the filename and do that ourselves.
-            table[$i]="\"${files[$i]}\",\""`file -b ${files[$i]}`"\","
-            
+            table[$i]="\"${files[$i]}\","
+            table[$i]+=$(file -b "${files[$i]}")
+            #echo "Did file -b \"${files[$i]}\""
             # We check for both 32- and 64-bit ELF files since a 64-bit
             # machine can run 32-bit ELFs. Technically, this will produce
             # false-positives if a file is named "ELF (32|64)-bit."
             if [[ "${table[$i]}" == *"$elf32"* ]] || [[ "${table[$i]}" == *"$elf64"* ]]; then
                 elfcount=$((elfcount+1))
-                if `objdump -T "${files[$i]}" 2>/dev/null | grep -q "GLIBC_2.4   socket"`; then
+                if $(objdump -T "\"${files[$i]}\"" 2>/dev/null | grep -q "GLIBC_2.4   socket"); then
                     socketcount=$((socketcount+1))
-                    table[$i]+="socket,"
+                    table[$i]+="\"socket\","
                 else
-                    table[$i]+=","
+                    table[$i]+="\"\","
                 fi
             fi
 
@@ -200,9 +202,9 @@ main() {
             # owned by root and that it has the SETUID bit set.
             if [ -O "${files[$i]}" -a -u "${files[$i]}" ] ; then
                     suidrootcount=$((suidrootcount+1))
-                    table[$i]+="suidroot,"
+                    table[$i]+="\"suidroot\","
             else
-                table[$i]+=","
+                table[$i]+="\"\","
             fi
 
             # Last, we check if the file was also found in our autostarts
@@ -210,7 +212,9 @@ main() {
             # systemd or is a related dependency.
             if [[ " ${autostarts[@]} "  =~ " ${files[$i]} " ]] ; then
                 autostartcount=$((autostartcount+1))
-                table[$i]+="autostart"
+                table[$i]+="\"autostart\""
+            else
+                table[$i]+="\"\""
             fi
     done
     echo -e "\r\033[1A\033[K$MSG Done!" && echo -en "\033[K"
@@ -222,5 +226,12 @@ main() {
     echo "Imports socket: $socketcount"
     #echo "DEBUG Autostarts array count: ${#autostarts[@]}"
     printf "%s\n" "${table[@]}" > files.txt
+    echo "------------------------------------"
 }
-time main "$@"
+exec 3>&1
+exec 4>&2
+realtime=$({ time main "$@" 1>&3 2>&4; } 2>&1)
+echo "$realtime" | awk 'NR == 2 {print "Completed in: "$2}'
+echo "------------------------------------"
+exec 3>&-
+exec 4>&-
