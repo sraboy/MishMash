@@ -16,6 +16,9 @@ getautostarts() {
     # cut/paste to change to "disabled" when that's what I need.
     MSG="Collecting systemd unit files..."
     echo "$MSG"
+    
+    # We declare first so we keep the array local
+    declare -a unitfiles
     read -ra unitfiles <<< $(systemctl list-unit-files --type=service |
                    grep -v masked | head -n-2 | awk 'NR>1{print $1}')
     
@@ -23,7 +26,7 @@ getautostarts() {
     
     MSG="Checking paths..."
     echo "$MSG"
-    paths=()
+    local paths=()
     for f in "${unitfiles[@]}"; do
         #echo -en "\e[1A"
         echo -en "\r\033[KLooking for $f"
@@ -58,7 +61,7 @@ getautostarts() {
     done
     echo -e "\r\033[1A\033[K$MSG Found ${#paths[@]} unit files. Done!" && echo -en "\033[K"
 
-    execfiles=()
+    local execfiles=()
     MSG="Parsing configurations..."
     echo "$MSG"
     for path in "${paths[@]}"; do
@@ -79,6 +82,7 @@ getautostarts() {
     # the executables may import.
     MSG="Getting library search paths..."
     echo "$MSG"
+    declare -a ldpaths
     read -ra ldpaths <<< $(ldconfig -v 2>/dev/null | grep -v ^$'\t')
     
     # Get rid of the trailing colon.
