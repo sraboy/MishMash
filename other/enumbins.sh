@@ -196,8 +196,7 @@ main() {
             # we're looking at. However, `file` outputs:
             # "filename: <stuff>". We don't want that space so we use -b
             # to skip outputting the filename and do that ourselves.
-            table[$i]="\"${files[$i]}\","
-            table[$i]+=$(file -b "${files[$i]}")
+            table[$i]="\"${files[$i]}\",\"$(file -b "${files[$i]}")\","
             #echo "Did file -b \"${files[$i]}\""
             # We check for both 32- and 64-bit ELF files since a 64-bit
             # machine can run 32-bit ELFs. Technically, this will produce
@@ -208,8 +207,10 @@ main() {
                     socketcount=$((socketcount+1))
                     table[$i]+="\"socket\","
                 else
-                    table[$i]+="\"\","
+                    table[$i]+=","
                 fi
+            else
+                table[$i]+=","
             fi
 
             # Since we run as root, we just check that the file is both
@@ -218,7 +219,7 @@ main() {
                     suidrootcount=$((suidrootcount+1))
                     table[$i]+="\"suidroot\","
             else
-                table[$i]+="\"\","
+                table[$i]+=","
             fi
 
             # Last, we check if the file was also found in our autostarts
@@ -228,7 +229,7 @@ main() {
                 autostartcount=$((autostartcount+1))
                 table[$i]+="\"autostart\""
             else
-                table[$i]+="\"\""
+                table[$i]+=""
             fi
     done
     echo -e "\r\033[1A\033[K$MSG Done!" && echo -en "\033[K"
