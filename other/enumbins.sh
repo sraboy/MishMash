@@ -71,9 +71,14 @@ getautostarts() {
         # name, sans arguments, and then, if it happens to be a link,
         # we get the target. Last, remove duplicates since a lot of the
         # services just pass different options to a binary for Start/Stop.
-        execfiles+=($(cat $path | grep -e "^ExecStart" |
-                           sed 's/\(ExecStart\|ExecStartPre\|ExecStartPost\)=-*\([^ ]\+\).*/\2/' |
-                           xargs -i{} readlink -f {} | sort -u))
+        bins=( $(cat $path | grep -e "^ExecStart" | 
+                sed 's/\(ExecStart\|ExecStartPre\|ExecStartPost\)=-*\([^ ]\+\) \([^\-c].*\)/\2\n\3/') )
+        # Save the binary
+        execfiles+=($(readlink -f "${bins[0]}"))
+        # If it's a non-inline script, save the script too
+        if [[ " ${bins[0]} " == *"python"* || " ${bins[0]} " == *"perl"* && -e "${bins[1]}" ]]; then
+            execfiles+=($(readlink -f "${bins[1]}"))
+        fi
     done
     echo -e "\r\033[1A\033[K$MSG Done!" && echo -en "\033[K"
 
@@ -93,20 +98,22 @@ getautostarts() {
     # Now we iterate through all the executables launched by systemd
     # and check their dependencies. What tools are available will
     # dictate the best way to do this. Using `ldd` is the best
-    # route since it will also find dependencies of dependencies.
+    # route since it will also find dependencies of dependencies but it 
+    # wasn't available on my test system.
     #
     # ldd /bin/ls | awk '{print $1}'
     # readelf -d /bin/ls | grep NEEDED | awk '{print $5}' | sed 's/\[\|\]//g'
     # objdump -p /bin/ls | grep NEEDED | awk '{print $2}'
     MSG="Checking for ELF dependencies..."
     echo "$MSG"
+    
     for ef in "${execfiles[@]}"; do
         echo -en "\r\033[KChecking $ef"
         # Save the binary itself
         [[ -e "$ef" ]] && autostarts+=("$ef")
 
         mapfile -t libs < <(objdump -p "$ef" 2>/dev/null | grep NEEDED | awk '{print $2}')
-
+        
         # Find and save the full path of each dependency
         for lib in "${libs[@]}"; do
             for prefix in "${ldpaths[@]}"; do
@@ -145,34 +152,31 @@ main() {
     getautostarts
 
     rootloc="/"
-    # Note that adding the second find command dramatically extends the
+    
+    # Note that the second find command below dramatically extends the
     # script's runtime. All it's doing is finding ELFs that happen to
     # not be marked executable since the first find command misses
     # those. My actual target system was a small embedded installation
     # so this only went from ~3min to ~8min. My development system,
-    # however, went from ~12min to ~31min.
+    # however, went from ~12min to ~31min. Here's the quicker version:
+    # 
+    #   mapfile -t files < <(find $rootloc -executable -type f -not -path "/mnt/*" -not -path "/media/*" 2>/dev/null)
     # NOTES:
     # - Use `-perm /111` if you don't have `-executable`
-    # - Various versions of the second find command were tested to find
-    #   the fastest throughput and it doesn't get any better than this.
+    # - Various versions of the second find command were tested to 
+    #   identify which has the fastest throughput. It doesn't appear to 
+    #   get any better than this.
 
-    # Quicker, but less accurate
-    #MSG="Finding all executables in $rootloc..."
-    #echo "$MSG"
-    #mapfile -t files < <(find $rootloc -executable -type f -not -path "/mnt/*" -not -path "/media/*" 2>/dev/null)
-    #
-    ## Since we missed non-executable ELFs, we use this to add the ones
-    ## we may have identified through getautostarts. Comment out if you
-    ## use the command below instead. On my test system, this found an
-    ## additional 3 files. On my dev system, it found 112. YMMV.
-    #checkmissed
-
-    # Use me if you've got time to spare
     MSG="Finding all executables & ELFs in $rootloc..."
     echo "$MSG"
     mapfile -t files < <(find $rootloc -executable -type f -not -path "/mnt/*" -not -path "/media/*" 2>/dev/null &
                          find $rootloc -not -executable -type f -not -path "/mnt/*" -not -path "/media/*" 2>/dev/null -print0 | xargs -0 file {} | sed -n '/ELF/p' | sed 's/:.*//g' & wait)
 
+    # The shorter `find` will miss non-executable ELFs, so we'll add them
+    # to our list with this. Similarly, even with the longer `find`, 
+    # we'll miss non-executable Python scripts.
+    checkmissed
+    
     echo -e "\r\033[1A\033[K$MSG Done!" && echo -en "\033[K"
     echo "Found ${#files[@]} files"
 
@@ -190,20 +194,34 @@ main() {
     # You should manually check a few files with `objdump -T` to see
     # exactly what the output looks like so you can `grep` properly.
     for ((i=0; i<${#files[@]}; i++)); do
-            echo -en "\r\033[KChecking file $((i+1))/${#files[@]}: ${files[$i]}"
+            echo -en "\r\033[KChecking file $((i+1))/${#files[@]}: '${files[$i]}'"
 
             # We add the output of `file` to our table so we know what
             # we're looking at. However, `file` outputs:
             # "filename: <stuff>". We don't want that space so we use -b
             # to skip outputting the filename and do that ourselves.
             table[$i]="\"${files[$i]}\",\"$(file -b "${files[$i]}")\","
-            #echo "Did file -b \"${files[$i]}\""
+            
             # We check for both 32- and 64-bit ELF files since a 64-bit
             # machine can run 32-bit ELFs. Technically, this will produce
             # false-positives if a file is named "ELF (32|64)-bit."
             if [[ "${table[$i]}" == *"$elf32"* ]] || [[ "${table[$i]}" == *"$elf64"* ]]; then
                 elfcount=$((elfcount+1))
-                if objdump -T "${files[$i]}" 2>/dev/null | grep -q "GLIBC_2.4   socket"; then
+                if objdump -T "${files[$i]}" 2>/dev/null | grep -q "GLIBC_2.4   socket$"; then
+                    socketcount=$((socketcount+1))
+                    table[$i]+="\"socket\","
+                else
+                    table[$i]+=","
+                fi
+            # We want to find Python and Perl scripts that use socket 
+            # modules. There are multiple ways `file` could represent 
+            # the script's type, but they all appear to include either
+            # ASCII or UTF-8, so we just search for those. We avoid false
+            # positives because, at this point, we're already limited to
+            # scripts either marked as executable or, if not, scripts 
+            # that *are* actually executed by systemd.
+            elif file "${files[$i]}" | grep -q "ASCII\|UTF-8"; then 
+                if cat "${files[$i]}" | grep -q "^\(import _*socket\|use \(IO::\)*Socket.*$\)"; then 
                     socketcount=$((socketcount+1))
                     table[$i]+="\"socket\","
                 else
