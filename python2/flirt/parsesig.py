@@ -2,7 +2,7 @@
 """
 Copyright 2017 Steve Lavoie
 
-Redistribution and use in source and binary forms, with or without 
+Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
 
 1. Redistributions of source code must retain the above copyright notice,
@@ -19,7 +19,7 @@ this software without specific prior written permission.
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS 
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
 BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
 CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
 SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
@@ -28,7 +28,7 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 
-References: 
+References:
   IDA SDK:                https://www.hex-rays.com/products/ida/support/sdkdoc/
   Forum post:             http://www.woodmann.com/forum/showthread.php?7517-IDA-signature-file-format&p=87450&viewfull=1#post87450
   Universal Decompiler:   https://github.com/JohnDMcMaster/uvudec
@@ -48,7 +48,7 @@ License/Credit Notes:
   reference since my Python-fu is poor. Similarly, the fork of lpase has
   helped identify the compression used (Gzip's Deflate) and how to support
   later versions of SIG files.
-  
+
   This implementation is released under the BSD 3-clause license.
 """
 import os
@@ -57,6 +57,7 @@ import struct
 import zlib
 import cStringIO
 import logging
+import re
 
 __author__      = 'Steve Lavoie'
 __copyright__   = 'Copyright (c) 2017'
@@ -229,65 +230,67 @@ class SIGFILE_HEADER(object):
 
         char[lib_name_sz] lib_name;
     """
-    def __init__(self, buf):
-        self.magic = None
-        self.version = None
-        self.arch = None
-        self.file_types_flags = None
-        self.file_types = {}
-        self.OS_types_flags = None
-        self.OS_types = {}
-        self.app_types_flags = None
-        self.app_types = {}
-        self.feature_flags = None
-        self.features = {}
+    def __init__(self, owner):
+        self.magic              = None
+        self.version            = None
+        self.arch               = None
+        self.file_types_flags   = None
+        self.file_types         = {}
+        self.OS_types_flags     = None
+        self.OS_types           = {}
+        self.app_types_flags    = None
+        self.app_types          = {}
+        self.feature_flags      = None
+        self.features           = {}
         self.old_number_modules = None
-        self.crc16 = None
-        self.ctype = None
-        self. lib_name_len = None
-        self.alt_ctype_crc16 = None
-        self.n_modules = None
-        self.pat_size = None
-        self.ctype_unk = None       # Maybe the -C switch, signifying ctype is a ptr?
+        self.crc16              = None
+        self.ctype              = None
+        self. lib_name_len      = None
+        self.alt_ctype_crc16    = None
+        self.n_modules          = None
+        self.pat_size           = None
+        self.ctype_unk          = None   # Maybe the -C switch, signifying ctype is a ptr?
 
-        if buf is not None:
-            self.parse(buf)
-            
-    def parse(self, buf):
-        self.magic = buf.read(6)
+        self.num_funcs = 0
+        self.owner = owner
+        if self.owner._buf is not None:
+            self.parse()
+
+    def parse(self):
+        self.magic = self.owner._buf.read(6)
         if self.magic != 'IDASGN':
             print 'Invalid file format'
             return False
 
-        try:
-            self.version              = struct.unpack('<b', buf.read(1))[0]
-            self.archinfo             = SIGFILE_HEADER_ARCH[struct.unpack('<b', buf.read(1))[0]]
-            self.file_types_flags     = struct.unpack('<I', buf.read(4))[0]
-            self.os_types_flags       = struct.unpack('<H', buf.read(2))[0]
-            self.app_types_flags      = struct.unpack('<H', buf.read(2))[0]
-            self.feature_flags        = struct.unpack('<H', buf.read(2))[0]
-            self.old_number_modules   = struct.unpack('<H', buf.read(2))[0]
-            self.crc16                = struct.unpack('<H', buf.read(2))[0]
-            self.ctype                = buf.read(12)
-            self.lib_name_len         = struct.unpack('<b', buf.read(1))[0]
-            self.alt_ctype_crc16      = struct.unpack('<H', buf.read(2))[0]
+        #try:
+        self.version              = self.owner.next_byte()#struct.unpack('<B', buf.read(1))[0]
+        self.archinfo             = SIGFILE_HEADER_ARCH[self.owner.next_byte()]#struct.unpack('<b', buf.read(1))[0]]
+        self.file_types_flags     = self.owner.next_int16()#struct.unpack('<I', buf.read(4))[0]
+        self.os_types_flags       = self.owner.next_short()#struct.unpack('<H', buf.read(2))[0]
+        self.app_types_flags      = self.owner.next_short()#struct.unpack('<H', buf.read(2))[0]
+        self.feature_flags        = self.owner.next_short()#struct.unpack('<H', buf.read(2))[0]
+        self.old_number_modules   = self.owner.next_short()#struct.unpack('<H', buf.read(2))[0]
+        self.crc16                = self.owner.next_short()#struct.unpack('<H', buf.read(2))[0]
+        self.ctype                = self.owner._buf.read(12)
+        self.lib_name_len         = self.owner.next_byte()#struct.unpack('<b', buf.read(1))[0]
+        self.alt_ctype_crc16      = self.owner.next_short()#struct.unpack('<H', buf.read(2))[0]
 
-            self.file_types           = {v for k,v in SIGFILE_HEADER_FILETYPE_FLAGS.items() if k & self.file_types_flags}
-            self.OS_types           = {v for k,v in SIGFILE_HEADER_OSTYPE_FLAGS.items() if k & self.os_types_flags}
-            self.app_types           = {v for k,v in SIGFILE_HEADER_APPTYPE_FLAGS.items() if k & self.app_types_flags}
-            self.features           = {v for k,v in SIGFILE_HEADER_FEATURE_FLAGS.items() if k & self.feature_flags}
-            
-            if self.version >= 6:
-                self.n_modules        = struct.unpack('<I', buf.read(4))[0]
-            if self.version >= 8:
-                self.pat_size         = struct.unpack('<H', buf.read(2))[0]
-            if self.version >= 10:
-                self.ctype_unk        = struct.unpack('<H', buf.read(2))[0]
-        except (KeyboardInterrupt, SystemExit):
-            raise
-        except Exception as (errno, strerror):
-            print 'Failed to parse SIG file header. Error %d: %s' % (errno, strerror)
-            return False
+        self.file_types           = {v for k,v in SIGFILE_HEADER_FILETYPE_FLAGS.items() if k & self.file_types_flags}
+        self.OS_types             = {v for k,v in SIGFILE_HEADER_OSTYPE_FLAGS.items() if k & self.os_types_flags}
+        self.app_types            = {v for k,v in SIGFILE_HEADER_APPTYPE_FLAGS.items() if k & self.app_types_flags}
+        self.features             = {v for k,v in SIGFILE_HEADER_FEATURE_FLAGS.items() if k & self.feature_flags}
+
+        if self.version >= 6:
+            self.n_modules        = self.owner.next_int16()
+        if self.version >= 8:
+            self.pat_size         = self.owner.next_short()
+        if self.version >= 10:
+            self.ctype_unk        = self.owner.next_short()
+        #except (KeyboardInterrupt, SystemExit):
+            #raise
+        #except Exception as e:
+            #print 'Failed to parse SIG file header. Error: %s' % e
+            #return False
 
 class FlirtNode:
     len = 0
@@ -305,7 +308,7 @@ class FlirtModule:
     pub_fcns = []
     ref_fcns = []
     tail_bytes = None
-    
+
 class FlirtFunction:
     name = ""
     offset = 0
@@ -316,9 +319,6 @@ class FlirtFunction:
 class FlirtTailByte:
     offset = 0
     value = 0
-
-#class FlirtFlag:
-#    flags = 0
 
 class BinarySegment:
     offset = 0
@@ -331,48 +331,58 @@ class BinaryFunction:
     size = 0
     buf = ""
 
+class FlirtFlag:
+    flags = 0
+    
 class SIGFILE:
     def __init__(self, path):
         self._path   = path
         self._buf    = None
         self.Header  = None
         self.LibName = None
-        self.FunctionCount = 0
+        #self.FunctionCount = 0
         self.RootNode = FlirtNode()
-        
-        if not self.parse():
-            print 'Failed to parse SIG file'
-            return
+
+        #if not self.parse():
+        #    print 'Failed to parse SIG file'
+        #    return
 
     def parse(self):
-        with open(self._path, 'rb') as sigfile:
-            self._buf = io.BytesIO(sigfile.read())
+        sigfile = open(self._path, 'rb')
+        self._buf = io.BytesIO(sigfile.read())
+        self._buf.seek(0)
+        
+        self.Header = SIGFILE_HEADER(self)
 
-            self._buf.seek(0)
-            self.Header = SIGFILE_HEADER(self._buf)
-            if not self.Header:
-                return False
-            
-            self.LibName = self._buf.read(self.Header.lib_name_len)
-            self._buf = self._buf.read(sigfile.tell() - self._buf.tell())
-            
-            if self.Header.feature_flags & 0x10: # compressed
-                zd = zlib.decompressobj()
-                self._buf = zd.decompress(buf)
-                
-            self._buf = cStringIO.StringIO(self._buf)
-            self._buf.seek(0)
-            
-            self.parse_flirt_tree(self.RootNode)
-            return True
-            
+        if not self.Header:
+            return False
+
+        self.LibName = self._buf.read(self.Header.lib_name_len)
+        self._buf = self._buf.read(sigfile.tell() - self._buf.tell())
+
+        if self.Header.feature_flags & 0x10: # compressed
+            zd = zlib.decompressobj()
+            self._buf = zd.decompress(buf)
+
+        self._buf = cStringIO.StringIO(self._buf)
+        self._buf.seek(0)
+
+        self.parse_flirt_tree(self.RootNode)
+        return True
+        
     def next_byte(self):
-        return struct.unpack('<b', self._buf.read(1))[0]
-    def next_short(self, bitshift=False):
-        if not bitshift:
-            return struct.unpack('<H', self._buf.read(2))[0]
+        byte = struct.unpack('<B', self._buf.read(1))[0]
+        return byte if byte != '' else 0x00
+    def next_short(self):
+        val = self.next_byte() << 8
+        val += self.next_byte()
+        return val
+        #return struct.unpack('<H', self._buf.read(2))[0]
     def next_int16(self):
-        return struct.unpack('<I', self._buf.read(4))[0]
+        val = self.next_short() << 8
+        val += self.next_short()
+        return val
+        #return struct.unpack('<I', self._buf.read(4))[0]
     def next_bitshift(self):
         byte = self.next_byte()
         if byte & 0x80:
@@ -384,37 +394,40 @@ class SIGFILE:
 
         if (byte & 0x80) != 0x80:
             return byte
-        elif (byte & 0xc0) != 0xc0:
+
+        if (byte & 0xc0) != 0xc0:
             return ((byte & 0x7f) << 8) + self.next_byte()
-        elif (byte & 0xe0) != 0xe0:
-            byte = ((byte & 0x3f) << 24) + self.next_byte()
+
+        if (byte & 0xe0) != 0xe0:
+            byte = ((byte & 0x3f) << 24) + (self.next_byte() << 16)
             byte += self.next_short()
             return byte
-        else:
-            return self.next_int16()
+        
+        return self.next_int16()
 
     def parse_flirt_tree(self, rootnode):
-        flirt_tree_cnt = self.next_bitshift()
+        flirt_tree_cnt = self.next_multibytes()
         print 'Got %d FLIRT trees' % flirt_tree_cnt
-        
+
         if flirt_tree_cnt == 0:
             self.parse_flirt_leaf(rootnode)
-            
+
         rootnode.children = []
-        
+
         for i in range(flirt_tree_cnt):
             node = FlirtNode()
             node.len = self.next_byte()
+            print 'Got node.len: %d' % node.len
             self.parse_node_variant_mask(node)
             self.parse_node_bytes(node)
             node.parent = rootnode
             rootnode.children.append(node)
-            return self.parse_flirt_tree(node)
+            self.parse_flirt_tree(node)
 
     def parse_flirt_leaf(self, node):
         node.modules = []
-        flags = 0x0
-        
+        flags = FlirtFlag()
+
         while True:
             crc_len = self.next_byte()
             crc16   = self.next_short()
@@ -428,23 +441,21 @@ class SIGFILE:
                 else:
                     mod.len = self.next_bitshift()
 
-                flags = self.parse_public_funcs(mod)
-                
-                if flags & SIGFILE_PARSE_FLAGS['TAIL_BYTES']:
+                self.parse_funcs(mod, flags)
+
+                if flags.flags & SIGFILE_PARSE_FLAGS['TAIL_BYTES']:
                     self.parse_tail(mod)
-                if flags & SIGFILE_PARSE_FLAGS['REF_FUNCS']:
+                if flags.flags & SIGFILE_PARSE_FLAGS['REF_FUNCS']:
                     self.parse_ref_funcs(mod)
 
                 node.modules.append(mod)
-                
-                if flags & SIGFILE_PARSE_FLAGS['MORE_MODS_CRC'] == 0:
+                #print 'Added module node. Total: %d' % len(node.modules)
+                if flags.flags & SIGFILE_PARSE_FLAGS['MORE_MODS_CRC'] == 0:
                     break
-                    
-            if flags & SIGFILE_PARSE_FLAGS['MORE_MODS'] == 0:
+
+            if flags.flags & SIGFILE_PARSE_FLAGS['MORE_MODS'] == 0:
                 break
-        
-        return True
-        
+
     def parse_node_variant_mask(self, node):
         if node.len < 0x10:
             node.var_mask = self.next_bitshift()
@@ -452,13 +463,13 @@ class SIGFILE:
             node.var_mask = self.next_multibytes()
         elif node.len <= 0x40:
             node.var_mask = (self.next_multibytes << 32) + self.next_multibytes()
-        
+
     def parse_node_bytes(self, node):
         cur_mask = 1 << (node.len - 1)
         node.var_bool_arr = []
         node.pat_bytes = []
         for i in range(node.len):
-            val = True if node.var_mask & cur_mask else False
+            val = True if (node.var_mask & cur_mask) else False
             node.var_bool_arr.append(val)
             if node.var_mask & cur_mask:
                 node.pat_bytes.append(0x00)
@@ -466,11 +477,11 @@ class SIGFILE:
                 node.pat_bytes.append(self.next_byte())
 
             cur_mask >>= 1
-            
-    def parse_public_funcs(self, mod):
+
+    def parse_funcs(self, mod, flags):
         mod.pub_fcns = []
         off = 0
-        flags = 0
+        
         while True:
             func = FlirtFunction()
             if self.Header.version >= 9:
@@ -501,12 +512,11 @@ class SIGFILE:
                 print 'Function name too long! Read bytes: %s' % func.name
                 break
 
-            flags = byte
+            flags.flags = byte
             mod.pub_fcns.append(func)
-            self.FunctionCount += 1
-            if flags & SIGFILE_PARSE_FLAGS['MORE_NAMES'] == 0:
+            self.Header.num_funcs += 1
+            if flags.flags & SIGFILE_PARSE_FLAGS['MORE_NAMES'] == 0:
                 break
-        return flags
 
     def parse_tail(self, mod):
         mod.tail_bytes = []
@@ -523,8 +533,7 @@ class SIGFILE:
 
             tb.value = self.next_byte()
             mod.tail_bytes.append(tb)
-            
-        
+
     def parse_ref_funcs(self, mod):
         mod.ref_fcns = []
 
@@ -552,3 +561,126 @@ class SIGFILE:
 
             mod.ref_fcns.append(f)
 
+from elftools.elf.elffile import ELFFile
+def parse_elf(elffile):
+    '''Parses an ELF executable and return the image base, list of sections,
+    the symbol table
+    Args:
+        elfffile (str): path to an ELF file
+    Returns:
+        imgbase: image base
+        segs: binary segments list
+        funcs: binary functions list from symbol table
+    '''
+    funcs = []
+    segs = []
+    #imgbase not needed here, function's virtual address is calculated based on segments(address, offset, size)
+    imgbase = 0
+
+    with open(elffile, 'rb') as f:
+        elffile = ELFFile(f)
+        sec = elffile.get_section_by_name('.symtab')
+        if not sec:
+            print "No symbol table found bin binary"
+        '''if isinstance(sec, SymbolTableSection):
+            for i in range(1, sec.num_symbols() + 1):
+                if sec.get_symbol(i)["st_info"]["type"] == "STT_FUNC":
+                    fcn = BinaryFunction()
+                    fcn.name = sec.get_symbol(i).name
+                    fcn.offset = sec.get_symbol(i)["st_value"]
+                    fcn.size = sec.get_symbol(i)["st_size"]
+                    funcs.append(fcn)
+        '''
+        f.seek(0)
+        for segment in elffile.iter_segments():
+            if segment['p_type'] == 'PT_LOAD':
+                seg = BinarySegment()
+                seg.addr = segment['p_vaddr']
+                seg.size = segment['p_filesz']
+                seg.offset = segment['p_offset']
+                segs.append(seg)
+
+    return imgbase, segs, funcs
+
+class FLIRT:
+    def __init__(self, sigfile, binfile):
+        self.sigfile = SIGFILE(sigfile) #sigfile
+        self.buf = None
+        with open(binfile, 'rb') as f: #binary_stream in backends.ELF
+            self.buf = f.read()
+            
+        self.imgbase, self.segs, self.funcs = parse_elf('/bin/ls')
+        self.matches = {}
+        #self.identify_funcs(self.sigfile.RootNode, self.buf)
+        
+    def identify_funcs(self, node, buf):
+        if len(node.children):
+            print '1. We have %d children' % len(node.children)
+            print '1. We have %d modules' % len(node.modules)
+            for child in node.children:
+                self.identify_funcs(child, buf)
+        elif len(node.modules):
+            print '2. We have %d children' % len(node.children)
+            print '2. We have %d modules' % len(node.modules)
+            pattern = []
+            variant = []
+        nnode = node
+        while nnode:
+            if nnode.pat_bytes:
+                pattern = nnode.pat_bytes + pattern
+                variant = nnode.var_bool_arr + variant
+            nnode = nnode.parent
+        # build regex expression for non-variant and variant pattern
+        re_pat = b""
+        for i in range(len(pattern)):
+            if variant[i]:
+                re_pat+=b"(.)"
+            else:
+                re_pat += re.escape(chr(pattern[i]))
+
+        # compile the regex
+        print 'About to compile pattern: %s' % repr(re_pat)
+        regex = re.compile(re_pat, re.DOTALL+re.MULTILINE)
+        print 'Compiled: %s' % regex
+        # search inside the binary for bytes that match the current node pattern
+        #print 'Trying to finditer with pattern=type(%s), string=type(%s)' % (type(pattern), type(buf))
+        matchs = re.finditer(pattern=regex, string=buf)
+        print 'Found: %s' % matchs
+        for match in matchs:
+            # We found a match, let's see if the current offset of the binary is the offset of a known funtion
+            for module in node.modules:
+                #if module.crc_len == 0:
+                #    break
+                # compute the crc value of the buffer starting from the function offset+32 to crc length
+                bufcrc16 = crc16(buf[match.start()+32:match.start()+32+module.crc_len], module.crc_len)
+                if bufcrc16 != module.crc16:
+                    break
+                # we have the same crc, let's see if the module has tail bytes and try to match them against the current buffer
+                if module.tail_bytes:
+                    for tail_byte in module.tail_bytes:
+                        if ord(buf[match.start()+ 32 + module.crc_len + tail_byte.offset]) == tail_byte.value:
+                            # Tail bytes are equal, great, the buffer belongs to a known module so let's read function details from the module and append them to the final result
+                            for ffcn in module.pub_fcns:
+                                addr = hex(ffcn.offset + match.start())
+                                if addr in self.matches:
+                                    self.matches[addr].add(ffcn.name)
+                                else:
+                                    self.matches[addr] = set([ffcn.name])
+                            break
+
+                # great the buffer belongs to a known module so let's read function details from the module and append them to the final result
+                for ffcn in module.pub_fcns:
+                    if True:
+                        addr = hex(ffcn.offset+match.start())
+                        if addr in matches:
+                            self.matches[addr].add(ffcn.name)
+                        else:
+                            self.matches[addr] = set([ffcn.name])
+
+#s = SIGFILE('./amd64/sig/libc-2.13.sig')
+#imgbase, segs, funcs = parse_elf('/bin/ls')
+
+
+x = FLIRT('./amd64/sig/libc-2.23.sig', '/bin/ls')
+x.sigfile.parse()
+x.identify_funcs(x.sigfile.RootNode, x.buf)
