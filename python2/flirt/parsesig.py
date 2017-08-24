@@ -216,7 +216,7 @@ class SIGFILE_HEADER(object):
             uint16_t    OS_types;
             uint16_t    app_types;
             uint16_t    feature_flags;
-            uint16_t    old_number_modules;
+            uint16_t    old_number_funcs;
             uint16_t    crc16;
             char        ctype[12];
             uint8_t     library_name_sz;
@@ -242,11 +242,11 @@ class SIGFILE_HEADER(object):
         self.app_types          = {}
         self.feature_flags      = None
         self.features           = {}
-        self.old_number_modules = None
+        self.old_number_funcs   = None
         self.crc16              = None
         self.ctype              = None
-        self. lib_name_len      = None
-        self.alt_ctype_crc16    = None
+        self.lib_name_len       = None
+        self.ctype_crc16        = None
         self.n_modules          = None
         self.pat_size           = None
         self.ctype_unk          = None   # Maybe the -C switch, signifying ctype is a ptr?
@@ -269,22 +269,22 @@ class SIGFILE_HEADER(object):
         self.os_types_flags       = self.owner.next_short()#struct.unpack('<H', buf.read(2))[0]
         self.app_types_flags      = self.owner.next_short()#struct.unpack('<H', buf.read(2))[0]
         self.feature_flags        = self.owner.next_short()#struct.unpack('<H', buf.read(2))[0]
-        self.old_number_modules   = self.owner.next_short()#struct.unpack('<H', buf.read(2))[0]
+        self.old_number_funcs     = self.owner.next_short()#struct.unpack('<H', buf.read(2))[0]
         self.crc16                = self.owner.next_short()#struct.unpack('<H', buf.read(2))[0]
         self.ctype                = self.owner._buf.read(12)
         self.lib_name_len         = self.owner.next_byte()#struct.unpack('<b', buf.read(1))[0]
-        self.alt_ctype_crc16      = self.owner.next_short()#struct.unpack('<H', buf.read(2))[0]
+        self.ctype_crc16      = self.owner.next_short()#struct.unpack('<H', buf.read(2))[0]
 
         self.file_types           = {v for k,v in SIGFILE_HEADER_FILETYPE_FLAGS.items() if k & self.file_types_flags}
         self.OS_types             = {v for k,v in SIGFILE_HEADER_OSTYPE_FLAGS.items() if k & self.os_types_flags}
         self.app_types            = {v for k,v in SIGFILE_HEADER_APPTYPE_FLAGS.items() if k & self.app_types_flags}
         self.features             = {v for k,v in SIGFILE_HEADER_FEATURE_FLAGS.items() if k & self.feature_flags}
 
-        if self.version >= 6:
+        if self.version >= 6:     # 6+ has at least one more field
             self.n_modules        = self.owner.next_int16()
-        if self.version >= 8:
+        if self.version >= 8:     # 8+ has at yet another
             self.pat_size         = self.owner.next_short()
-        if self.version >= 10:
+        if self.version >= 10:    # ditto for 10
             self.ctype_unk        = self.owner.next_short()
         #except (KeyboardInterrupt, SystemExit):
             #raise
@@ -371,7 +371,7 @@ class SIGFILE:
         return True
         
     def next_byte(self):
-        byte = struct.unpack('<B', self._buf.read(1))[0]
+        byte = struct.unpack('B', self._buf.read(1))[0]
         return byte if byte != '' else 0x00
     def next_short(self):
         val = self.next_byte() << 8
@@ -681,6 +681,6 @@ class FLIRT:
 #imgbase, segs, funcs = parse_elf('/bin/ls')
 
 
-x = FLIRT('./amd64/sig/libc-2.23.sig', '/bin/ls')
+x = FLIRT('./amd64/sig/libc-2.13.sig', '/bin/ls')
 x.sigfile.parse()
 x.identify_funcs(x.sigfile.RootNode, x.buf)
