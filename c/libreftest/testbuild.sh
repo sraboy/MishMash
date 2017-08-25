@@ -6,7 +6,7 @@ gcc -c -Os someotherlib.c -o someotherlib.o
 echo "ar'ing somelib.a"
 ar rcs somelib.a somelib.o someotherlib.o
 echo "Building usesomelib"
-gcc -Os -o usesomelib notalib.c somelib.a
+gcc -O0 -o usesomelib notalib.c somelib.a
 cp usesomelib usesomelib-stripped
 echo "Stripping usesomelib-stripped"
 strip usesomelib-stripped

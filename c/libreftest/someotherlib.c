@@ -2,11 +2,11 @@
 
 static int __getanum(int x, int y);
 const char * __dootherthings(char opt);
-const char * __doyetmorethings(char opt);
-const char * reallydootherthings(char opt) __attribute__((hot));
-const char * reallydoyetmorethings(char opt) __attribute__((hot));
-const char * addreallydootherthings(char opt) __attribute__((cold));
-const char * addreallydoyetmorethings(char opt) __attribute__((hot));
+const char * iamareffunc(char opt);
+const char * reallydootherthings(char opt);// __attribute__((hot));
+const char * reallydoyetmorethings(char opt);// __attribute__((hot));
+__attribute__((cold, noinline)) const char * ihaveareffunc(char opt);
+const char * addreallydootherthings(char opt);// __attribute__((hot));
 int __somefunc2(int x, int y);
 int __somefunc5(int x, int y);
 
@@ -17,13 +17,13 @@ const char * reallydootherthings(char opt) {
     return __dootherthings(opt);
 }
 const char * reallydoyetmorethings(char opt) {
-    return __doyetmorethings(opt);
+    return __dootherthings(opt);
 }
 const char * addreallydootherthings(char opt) {
     return __dootherthings(opt + 1);
 }
-const char * addreallydoyetmorethings(char opt) {
-    return __doyetmorethings(opt + 1);
+const char * ihaveareffunc(char opt) {
+    return iamareffunc(opt + 1);
 }
 
 const char * __dootherthings(char opt) {
@@ -57,7 +57,7 @@ const char * __dootherthings(char opt) {
     return msg;
 }
 
-const char * __doyetmorethings(char opt) {
+const char * iamareffunc(char opt) {
     opt += __somefunc2(opt, 2);
     opt += __somefunc2(opt, 3);
     char * msg;
@@ -92,14 +92,14 @@ int __somefunc2(int x, int y) {
     for(;y < x; y++){
         x += y;
     }
-    return __somefunc1(x, y);
+    return __somefunc5(x, y);
 }
 
 int __somefunc5(int x, int y) {
     for(;y < x; y++){
         x += y;
     }
-    return __somefunc3(x, y);
+    return __somefunc2(x, y);
 }
 
 static int __getanum(int x, int y) {

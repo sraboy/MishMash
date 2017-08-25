@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-const char * dothings(char opt); 
+const char * dothings(char opt);
 int somefunc1(int x, int y);
 int somefunc2(int x, int y);
 static int getanum(int x, int y);
