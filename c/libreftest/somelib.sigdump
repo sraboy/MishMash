@@ -1,7 +1,7 @@
-39F7:
-  7D0601FEFFC7EBF6E988000000415455BE020000005389FB400FBEFF41BC:
-    0. 00 0000 012E 0000:somefunc1 000F:dothings 0097:somefunc2 00A6:dootherthings
-  7EFC01F7FFC6EBF6400FBEFFBE02000000E8........FFC7400FBEFFE8:
-    0. 00 0000 003F 0000:__somefunc5 000A:iamareffunc 0018:addreallydootherthings 0023:reallydoyetmorethings 002C:__dootherthings 0031:reallydootherthings 003A:__somefunc2
-FFC7400FBEFFE8:
-  0. 00 0000 000B 0000:ihaveareffunc (REF 0007: iamareffunc)
+39F77D0601FEFFC7EBF6E988000000415455BE020000005389FB400FBEFF41BC:
+  0. 00 0000 012E 0000:somefunc1 000F:dothings 0097:somefunc2 00A6:dootherthings
+FFC7400FBE:
+  C78D7C4704400FBEC783C0038D044001C7B8........4080FF6174:
+    0. 06 52C1 007D 0000:idonthaveareffunc 003E:iamareffunc 0076:__getanum
+  FFE9:
+    0. 00 0000 000B 0000:ihaveareffunc (REF 0007: iamareffunc)
