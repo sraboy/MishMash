@@ -1,0 +1,96 @@
+NODE: 554889E5
+    LEAF/MOD: 4883EC2089F88845EC0FBE45EC83F861740B83F862741085C07416EB 
+        CRCLEN:   05 
+        CRC16:    662C 
+        MODLEN:   01AA
+            :0192@ getanum
+            :0000 dothings
+            :015F somefunc1
+            :00C8 dootherthings
+            ^00F8 somefunc2
+........EB1C48C745F8........EB1248C745F8........EB0848C745F8........C745F400000000EB62807DEC61751C8B45F4BE0400000089C7E8........89C20FB645EC01D08845ECEB3C807DEC62751C8B45F4BE0600000089C7E8........89C20FB645EC01D08845ECEB1A8B45F4BE0400000089C7E8........89C20FB645EC01D08845EC8345F401837DF4047E98488B45F80FB655EC8810488B45F8C9C3554889E54883EC2048897DE8488B45E80FB6008845F3C745F400000000EB62807DF361751C8B45F4BE0400000089C7E8........89C20FB645F301D08845F3EB3C807DF362751C8B45F4BE0600000089C7E8........89C20FB645F301D08845F3EB1A8B45F4BE0400000089C7E8........89C20FB645F301D08845F38345F401837DF4047E98488B45F80FB655F38810488B45F8C9C3554889E54883EC10897DFC8975F8EB0A8B45FC0145F88345FC018B45FC3B45F87CEE8B55F88B45FC89D689C7E802000000C9C3554889E5897DFC8975F88B55FC8B45F801D00FAF45F85DC3
+
+
+    LEAF/MOD: 897DFC8975F8EB0A8B45F80145FC8345F8018B45F83B45FC7CEE8B45 
+        CRCLEN:   07 
+        CRC16:    04B2 
+        MODLEN:   0027 
+            :0000 somefunc2 
+---
+
+
+
+class FlirtFeatureFlag(object):
+    FEATURE_STARTUP       = 0x01
+    FEATURE_CTYPE_CRC     = 0x02
+    FEATURE_2BYTE_CTYPE   = 0x04
+    FEATURE_ALT_CTYPE_CRC = 0x08
+    FEATURE_COMPRESSED    = 0x10
+
+
+class FlirtParseFlag(object):
+    PARSE_MORE_PUBLIC_NAMES          = 0x01
+    PARSE_READ_TAIL_BYTES            = 0x02
+    PARSE_READ_REFERENCED_FUNCTIONS  = 0x04
+    PARSE_MORE_MODULES_WITH_SAME_CRC = 0x08
+    PARSE_MORE_MODULES               = 0x10
+
+
+class FlirtFunctionFlag(object):
+    FUNCTION_LOCAL = 0x02                 # describes a static function
+    FUNCTION_UNRESOLVED_COLLISION = 0x08  # describes a collision that wasn't resolved
+    
+    
+    
+def read_max_2_bytes(f):
+    b = binrw.read_u8(f)
+    if b & 0x80 == 0x80:
+        return ((b & 0x7F) << 8) | binrw.read_u8(f)
+    else:
+        return b
+
+
+def read_multiple_bytes(f):
+    b = binrw.read_u8(f)
+    if b & 0x80 != 0x80:
+        return b
+    elif b & 0xC0 != 0xC0:
+        return ((b & 0x7F) << 8) | binrw.read_u8(f)
+    elif b & 0xE0 != 0xE0:
+        return ((b & 0x3F) << 24) | binrw.read_u24be(f)
+    else:
+        return binrw.read_u32be(f)
+
+
+def read_node_variant_mask(f, length):
+    if length < 0x10:
+        return read_max_2_bytes(f)
+    elif length <= 0x20:
+        return read_multiple_bytes(f)
+    elif length <= 0x40:
+        return (read_multiple_bytes(f) << 32) | read_multiple_bytes(f)
+    else:
+        raise FlirtException('Wrong node variant mask length: {}'.format(length))
+
+
+import angr, logging, nampa
+logging.getLogger('angr.analyses.sigscan').setLevel(logging.DEBUG)
+logging.getLogger('nampa.flirt').setLevel(logging.DEBUG)
+logging.getLogger('nampa.flirt_match').setLevel(logging.DEBUG)
+lbinpath = '/home/slavoie/code/lscan/amd64/bin/bin-libc-2.22'
+lsigpath = '/home/slavoie/code/lscan/amd64/sig/libc-2.22.sig'
+cbinpath = '/home/slavoie/code/mishmash/c/libreftest/usesomelib'
+bbinpath = '/home/slavoie/code/mishmash/c/libreftest/usesomelib-stripped'
+bcsigpath = '/home/slavoie/code/mishmash/c/libreftest/somelib.sig'
+b = angr.Project(bbinpath, load_options={'auto_load_libs':False})
+c = angr.Project(cbinpath, load_options={'auto_load_libs':False})
+#l = angr.Project(lbinpath, load_options={'auto_load_libs':False})
+#ll=b.kb.get_plugin('labels')
+#print 'Label count: %d' % len(l._labels)
+#print 'Reverse label count: %d' % len(l._reverse_labels)
+bcfg = b.analyses.CFGFast()
+ccfg = c.analyses.CFGFast()
+#lcfg = l.analyses.CFGFast()
+#print 'Label count: %d' % len(l._labels)
+#print 'Reverse label count: %d' % len(l._reverse_labels)
+bscan = b.analyses.SigScan(method='flirt', sigpath=bcsigpath, use_kb=True, use_sym=True, rename=False)

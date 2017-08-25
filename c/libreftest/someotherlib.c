@@ -1,18 +1,29 @@
 #include <stdio.h>
 
+static int __getanum(int x, int y);
 const char * __dootherthings(char opt);
 const char * __doyetmorethings(char opt);
-int __somefunc2(int x, int y);
-static int __getanum(int x, int y);
-
 const char * reallydootherthings(char opt) __attribute__((hot));
 const char * reallydoyetmorethings(char opt) __attribute__((hot));
+const char * addreallydootherthings(char opt) __attribute__((cold));
+const char * addreallydoyetmorethings(char opt) __attribute__((hot));
+int __somefunc2(int x, int y);
+int __somefunc5(int x, int y);
+
+
+
 
 const char * reallydootherthings(char opt) {
     return __dootherthings(opt);
 }
 const char * reallydoyetmorethings(char opt) {
     return __doyetmorethings(opt);
+}
+const char * addreallydootherthings(char opt) {
+    return __dootherthings(opt + 1);
+}
+const char * addreallydoyetmorethings(char opt) {
+    return __doyetmorethings(opt + 1);
 }
 
 const char * __dootherthings(char opt) {
