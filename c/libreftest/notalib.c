@@ -8,8 +8,8 @@ int main(int argc, char** argv) {
 		char * msg = dothings(argv[1][0]);
         printf(msg);
     } else if (argc == 2) {
-        char * msg = dootherthings(argv[1][0]);
-        printf(msg);
+        //char * msg = dootherthings(argv[1][0]);
+        printf("test");//msg);
     }
 }
 
