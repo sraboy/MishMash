@@ -3,3 +3,5 @@
     0. 00 0000 012E 0000:somefunc1 000F:dothings 0097:somefunc2 00A6:dootherthings
   7E0601F7FFC6EBF631C0E9........415455BE020000005389FB400FBEFF:
     0. 02 1E2F 00BE 0000:__somefunc2 0011:__doyetmorethings 00A8:__dootherthings 00AD:__somefunc5
+400FBEFFE9........400FBEFFE9:
+  0. 00 0000 0012 0000:reallydoyetmorethings 0009:reallydootherthings
