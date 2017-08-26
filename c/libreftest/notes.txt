@@ -1,34 +1,92 @@
-39F77D0601FEFFC7EBF6E988000000415455BE020000005389FB400FBEFF41BC:
-  0. 00 0000 012E 0000:somefunc1 000F:dothings 0097:somefunc2 00A6:dootherthings
-FFC7400FBE:
-  C78D7C4704400FBEC783C0038D044001C7B8........4080FF6174:
-    0. 06 52C1 007D 0000:idonthaveareffunc 003E:iamareffunc 0076:__getanum
-  FFE9:
-    0. 00 0000 000B 0000:ihaveareffunc (REF 0007: iamareffunc)
-
-
 39F77D0601FEFFC7EBF6E988000000415455BE020000005389FB400FBEFF41BC 00 0000 012E 
 :0000 somefunc1 
 :0097 somefunc2 
 :000F dothings 
 :00A6 dootherthings ........E8........01C380FB61741C80FB6241BC........741184DB41BC........B8........4C0F44E031ED80FB617511BE0400000089EFE8........8D5861EB2480FB627511BE0500000089EFE8........8D5862EB0EBE0600000089EFE8........01C3FFC583FD0575BF4C89E05B5D415CC339F77E0601F7FFC6EBF6E95AFFFFFF415455BE020000005389FB400FBEFF41BC........E8........01C380FB61741C80FB6241BC........741184DB41BC........B8........4C0F44E031ED80FB617511BE0400000089EFE8........8D5861EB2480FB627511BE0500000089EFE8........8D5862EB0EBE0600000089EFE8........01C3FFC583FD0575BF4C89E05B5D415CC3
-FFC7400FBEC78D7C4704400FBEC783C0038D044001C7B8........4080FF6174 06 52C1 007D 
-:0000 idonthaveareffunc 
-:003E iamareffunc 
-:0076 __getanum 
-^006C .LC5 ........74114084FFBA........B8........480F45C2C3B224B17BB0714080FF6175054088C7EB0D8D34174080FF620F44F14088F783C00483C10583C2063C8575DB40883D........B8........C38D04370FAFC6C3
+8D04370FAFC6C34088FA31C980FA617511BE0400000089CFE8........8D5061 0F 55D2 00FC 
+:0000 __getanum 
+:0007 iamareffunc 
+:0059 iamareffunc2 
+:00AB ihaveareffunc2 
+:00B4 __dootherthings 
+:00FA nope2 
+:00FB nope3 
+^004F .LC1 ........8D5062EB0EBE0600000089CFE8........01C2FFC183F90575BF8815........B8........C34088FA31C980FA617511BE0400000089CFE8........8D5061EB2480FA627511BE0500000089CFE8........8D5062EB0EBE0600000089CFE8........01C2FFC183F90575BF8815........B8........C383C702400FBEFFEBA589FABE02000000400FBEFFE8........01C2BE030000000FBEFAE8........01C2B8........80FA61741A80FA62B8........741084D2B8........BA........480F45C2C3C3C3
+FFC7400FBEFFE9.................................................. 00 0000 000B 
+:0000 nope1 
+^0007 __dootherthings 
 FFC7400FBEFFE9.................................................. 00 0000 000B 
 :0000 ihaveareffunc 
 ^0007 iamareffunc 
 ---
 
+39F77D0601FEFFC7EBF6E988000000415455BE020000005389FB400FBEFF41BC:
+  0. 00 0000 012E 0000:somefunc1 000F:dothings 0097:somefunc2 00A6:dootherthings
+8D04370FAFC6C34088FA31C980FA617511BE0400000089CFE8........8D5061:
+  0. 0F 55D2 00FC 0000:__getanum 0007:iamareffunc 0059:iamareffunc2 00AB:ihaveareffunc2 00B4:__dootherthings 00FA:nope2 00FB:nope3
+FFC7400FBEFFE9:
+  0. 00 0000 000B 0000:ihaveareffunc (REF 0007: iamareffunc)
+  1. 00 0000 000B 0000:nope1 (REF 0007: __dootherthings)
 
-class FlirtFeatureFlag(object):
-    FEATURE_STARTUP       = 0x01
-    FEATURE_CTYPE_CRC     = 0x02
-    FEATURE_2BYTE_CTYPE   = 0x04
-    FEATURE_ALT_CTYPE_CRC = 0x08
-    FEATURE_COMPRESSED    = 0x10
+
+
+angr.analyses.sigscan | Scanning 0 addresses for signatures in 'Unnamed sample library'
+angr.analyses.sigscan | Scanning 20 funcs for signatures in 'Unnamed sample library'
+angr.analyses.sigscan | Checking 0x00400724
+angr.analyses.sigscan | Checking 0x00400720
+angr.analyses.sigscan | Checking 0x004006b0
+angr.analyses.sigscan | Checking 0x004006a6
+angr.analyses.sigscan | Checking 0x004006a5
+angr.analyses.sigscan | Checking 0x00400656
+angr.analyses.sigscan | Checking 0x00400604
+angr.analyses.sigscan | Checking 0x004005ab
+nampa.flirt_match     | found prefix: 8D04370FAFC6C34088FA31C980FA617511BE0400000089CFE8........8D5061
+nampa.flirt_match     | buff_size: 0x000012DD
+nampa.flirt_match     | Public Function: __getanum, addr=0x05AB, offset=0x0000
+angr.analyses.sigscan | Matched __getanum at 0x05ab
+<FlirtFunction: name=__getanum, offset=0x0000, negative_offset=False, is_local=False, is_collision=False has_ref_funk=False, parent_funk=None ref_funk=None>
+nampa.flirt_match     | Public Function: iamareffunc, addr=0x05AB, offset=0x0007
+angr.analyses.sigscan | Matched iamareffunc at 0x05b2
+<FlirtFunction: name=iamareffunc, offset=0x0007, negative_offset=False, is_local=False, is_collision=False has_ref_funk=False, parent_funk=None ref_funk=None>
+nampa.flirt_match     | Public Function: iamareffunc2, addr=0x05AB, offset=0x0059
+angr.analyses.sigscan | Matched iamareffunc2 at 0x0604
+<FlirtFunction: name=iamareffunc2, offset=0x0059, negative_offset=False, is_local=False, is_collision=False has_ref_funk=False, parent_funk=None ref_funk=None>
+nampa.flirt_match     | Public Function: ihaveareffunc2, addr=0x05AB, offset=0x00AB
+angr.analyses.sigscan | Matched ihaveareffunc2 at 0x0656
+<FlirtFunction: name=ihaveareffunc2, offset=0x00AB, negative_offset=False, is_local=False, is_collision=False has_ref_funk=False, parent_funk=None ref_funk=None>
+nampa.flirt_match     | Public Function: __dootherthings, addr=0x05AB, offset=0x00B4
+angr.analyses.sigscan | Matched __dootherthings at 0x065f
+<FlirtFunction: name=__dootherthings, offset=0x00B4, negative_offset=False, is_local=False, is_collision=False has_ref_funk=False, parent_funk=None ref_funk=None>
+nampa.flirt_match     | Public Function: nope2, addr=0x05AB, offset=0x00FA
+angr.analyses.sigscan | Matched nope2 at 0x06a5
+<FlirtFunction: name=nope2, offset=0x00FA, negative_offset=False, is_local=False, is_collision=False has_ref_funk=False, parent_funk=None ref_funk=None>
+nampa.flirt_match     | Public Function: nope3, addr=0x05AB, offset=0x00FB
+angr.analyses.sigscan | Matched nope3 at 0x06a6
+<FlirtFunction: name=nope3, offset=0x00FB, negative_offset=False, is_local=False, is_collision=False has_ref_funk=False, parent_funk=None ref_funk=None>
+angr.analyses.sigscan | Checking 0x00400546
+angr.analyses.sigscan | Checking 0x00400520
+angr.analyses.sigscan | Checking 0x00400500
+angr.analyses.sigscan | Checking 0x004004b2
+angr.analyses.sigscan | Checking 0x00400480
+angr.analyses.sigscan | Checking 0x00400479
+angr.analyses.sigscan | Checking 0x00400450
+angr.analyses.sigscan | Checking 0x0040043b
+nampa.flirt_match     | found prefix: FFC7400FBEFFE9
+nampa.flirt_match     | buff_size: 0x00001466
+nampa.flirt_match     | Public Function: ihaveareffunc, addr=0x043B, offset=0x0000
+angr.analyses.sigscan | Matched ihaveareffunc at 0x043b
+<FlirtFunction: name=ihaveareffunc, offset=0x0000, negative_offset=False, is_local=False, is_collision=False has_ref_funk=True, parent_funk=None ref_funk=iamareffunc>
+angr.analyses.sigscan | Checking 0x00400430
+nampa.flirt_match     | found prefix: FFC7400FBEFFE9
+nampa.flirt_match     | buff_size: 0x00001471
+nampa.flirt_match     | Public Function: ihaveareffunc, addr=0x0430, offset=0x0000
+angr.analyses.sigscan | ihaveareffunc at 0x00000430 is duplicate of ihaveareffunc at 0x0000043b
+angr.analyses.sigscan | Matched ihaveareffunc at 0x0430
+<FlirtFunction: name=ihaveareffunc, offset=0x0000, negative_offset=False, is_local=False, is_collision=False has_ref_funk=True, parent_funk=None ref_funk=iamareffunc>
+angr.analyses.sigscan | Checking 0x00400420
+angr.analyses.sigscan | Checking 0x004003f0
+angr.analyses.sigscan | Checking 0x004003c8
+
 
 
 class FlirtParseFlag(object):
@@ -82,17 +140,17 @@ logging.getLogger('nampa.flirt').setLevel(logging.DEBUG)
 logging.getLogger('nampa.flirt_match').setLevel(logging.DEBUG)
 lbinpath = '/home/slavoie/code/lscan/amd64/bin/bin-libc-2.22'
 lsigpath = '/home/slavoie/code/lscan/amd64/sig/libc-2.22.sig'
-cbinpath = '/home/slavoie/code/mishmash/c/libreftest/usesomelib'
+#cbinpath = '/home/slavoie/code/mishmash/c/libreftest/usesomelib'
 bbinpath = '/home/slavoie/code/mishmash/c/libreftest/usesomelib-stripped'
 bcsigpath = '/home/slavoie/code/mishmash/c/libreftest/somelib.sig'
 b = angr.Project(bbinpath, load_options={'auto_load_libs':False})
-c = angr.Project(cbinpath, load_options={'auto_load_libs':False})
+#c = angr.Project(cbinpath, load_options={'auto_load_libs':False})
 #l = angr.Project(lbinpath, load_options={'auto_load_libs':False})
 #ll=b.kb.get_plugin('labels')
 #print 'Label count: %d' % len(l._labels)
 #print 'Reverse label count: %d' % len(l._reverse_labels)
 bcfg = b.analyses.CFGFast()
-ccfg = c.analyses.CFGFast()
+#ccfg = c.analyses.CFGFast()
 #lcfg = l.analyses.CFGFast()
 #print 'Label count: %d' % len(l._labels)
 #print 'Reverse label count: %d' % len(l._reverse_labels)

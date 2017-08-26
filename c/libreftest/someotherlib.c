@@ -1,32 +1,56 @@
 #include <stdio.h>
 
-static const char * __dootherthings(char opt);
-const char * iamareffunc(char opt);
-__attribute__((cold, noinline)) const char * ihaveareffunc(char opt);
-const char * idonthaveareffunc(char opt);// __attribute__((hot));
-int __getanum(int x, int y);
-__attribute__((noinline)) int __somefunc5(int x, int y);
 
-
-/*
-const char * reallydootherthings(char opt);// __attribute__((hot));
-const char * reallydoyetmorethings(char opt);// __attribute__((hot));
-const char * reallydootherthings(char opt) {
-    return __dootherthings(opt);
-}
-const char * reallydoyetmorethings(char opt) {
-    return __dootherthings(opt);
-}
-*/
-const char * idonthaveareffunc(char opt) {
-    return __dootherthings(opt + 1);
+__attribute__((noinline))
+int __getanum(int x, int y) {
+    return (x+y)*y;
 }
 
+__attribute__((noinline))
+const char * iamareffunc(char opt) {
+    char * msg = "teststring";
+    for(int i = 0; i < 5; i++){
+        if(opt == 'a') {
+            opt += __getanum(i, 4);
+        } else if (opt == 'b') {
+            opt += __getanum(i, 5);
+        } else {
+            opt += __getanum(i, 6);
+        }
+    }
+    msg[0] = opt;
+    return msg;
+}
+
+__attribute__((noinline, hot))
 const char * ihaveareffunc(char opt) {
     return iamareffunc(opt + 1);
 }
 
-static const char * __dootherthings(char opt) {
+__attribute__((noinline))
+const char * iamareffunc2(char opt) {
+    char * msg = "teststring";
+    for(int i = 0; i < 5; i++){
+        if(opt == 'a') {
+            opt += __getanum(i, 4);
+        } else if (opt == 'b') {
+            opt += __getanum(i, 5);
+        } else {
+            opt += __getanum(i, 6);
+        }
+    }
+    msg[0] = opt;
+    return msg;
+}
+
+__attribute__((noinline))
+const char * ihaveareffunc2(char opt) {
+    return iamareffunc2(opt + 2);
+}
+
+
+__attribute__((noinline))
+const char * __dootherthings(char opt) {
     opt += __getanum(opt, 2);
     opt += __getanum(opt, 3);
     char * msg;
@@ -57,22 +81,25 @@ static const char * __dootherthings(char opt) {
     return msg;
 }
 
-const char * iamareffunc(char opt) {
-    char * msg = "teststring";
-    for(int i = 0; i < 5; i++){
-        if(opt == 'a') {
-            opt += __getanum(i, 4);
-        } else if (opt == 'b') {
-            opt += __getanum(i, 5);
-        } else {
-            opt += __getanum(i, 6);
-        }
-    }
-    msg[0] = opt;
-    return msg;
+
+__attribute__((noinline, cold))
+const char * nope1(char opt) {
+    return __dootherthings(opt + 1);
 }
 
-
-int __getanum(int x, int y) {
-    return (x+y)*y;
+__attribute__((noinline))
+void nope2(char opt) {
+    volatile int volatile * x =  nope1(opt);
+    x += 0x7FFFFFFFFFFFFEEE;
+    x += (int)__dootherthings(x);
+    return;
 }
+
+__attribute__((noinline))
+void nope3(char opt) {
+    volatile int volatile * x =  nope1(opt);
+    x += 0x7FFFFFFFFFFFFEEE;
+    x += (int)nope1(x);
+    return;
+}
+

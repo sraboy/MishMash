@@ -1,7 +1,7 @@
 39F77D0601FEFFC7EBF6E988000000415455BE020000005389FB400FBEFF41BC:
   0. 00 0000 012E 0000:somefunc1 000F:dothings 0097:somefunc2 00A6:dootherthings
-FFC7400FBE:
-  C78D7C4704400FBEC783C0038D044001C7B8........4080FF6174:
-    0. 06 52C1 007D 0000:idonthaveareffunc 003E:iamareffunc 0076:__getanum
-  FFE9:
-    0. 00 0000 000B 0000:ihaveareffunc (REF 0007: iamareffunc)
+8D04370FAFC6C34088FA31C980FA617511BE0400000089CFE8........8D5061:
+  0. 0F 55D2 00FC 0000:__getanum 0007:iamareffunc 0059:iamareffunc2 00AB:ihaveareffunc2 00B4:__dootherthings 00FA:nope2 00FB:nope3
+FFC7400FBEFFE9:
+  0. 00 0000 000B 0000:ihaveareffunc (REF 0007: iamareffunc)
+  1. 00 0000 000B 0000:nope1 (REF 0007: __dootherthings)
