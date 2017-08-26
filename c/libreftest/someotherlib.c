@@ -28,7 +28,7 @@ const char * ihaveareffunc(char opt) {
 }
 
 __attribute__((noinline))
-const char * iamareffunc2(char opt) {
+const char * somejunk(char opt) {
     char * msg = "teststring";
     for(int i = 0; i < 5; i++){
         if(opt == 'a') {
@@ -45,12 +45,12 @@ const char * iamareffunc2(char opt) {
 
 __attribute__((noinline))
 const char * ihaveareffunc2(char opt) {
-    return iamareffunc2(opt + 2);
+    return somejunk(opt + 2);
 }
 
 
 __attribute__((noinline))
-const char * __dootherthings(char opt) {
+const char * iamalsoareffunc(char opt) {
     opt += __getanum(opt, 2);
     opt += __getanum(opt, 3);
     char * msg;
@@ -83,23 +83,23 @@ const char * __dootherthings(char opt) {
 
 
 __attribute__((noinline, cold))
-const char * nope1(char opt) {
-    return __dootherthings(opt + 1);
+const char * ialsohaveareffunc(char opt) {
+    return iamalsoareffunc(opt + 1);
 }
 
 __attribute__((noinline))
 void nope2(char opt) {
-    volatile int volatile * x =  nope1(opt);
+    volatile int volatile * x =  ialsohaveareffunc(opt);
     x += 0x7FFFFFFFFFFFFEEE;
-    x += (int)__dootherthings(x);
+    x += (int)iamalsoareffunc(x);
     return;
 }
 
 __attribute__((noinline))
 void nope3(char opt) {
-    volatile int volatile * x =  nope1(opt);
+    volatile int volatile * x =  ialsohaveareffunc(opt);
     x += 0x7FFFFFFFFFFFFEEE;
-    x += (int)nope1(x);
+    x += (int)ialsohaveareffunc(x);
     return;
 }
 

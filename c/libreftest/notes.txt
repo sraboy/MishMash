@@ -6,86 +6,88 @@
 8D04370FAFC6C34088FA31C980FA617511BE0400000089CFE8........8D5061 0F 55D2 00FC 
 :0000 __getanum 
 :0007 iamareffunc 
-:0059 iamareffunc2 
+:0059 somejunk 
 :00AB ihaveareffunc2 
-:00B4 __dootherthings 
+:00B4 iamalsoareffunc 
 :00FA nope2 
 :00FB nope3 
 ^004F .LC1 ........8D5062EB0EBE0600000089CFE8........01C2FFC183F90575BF8815........B8........C34088FA31C980FA617511BE0400000089CFE8........8D5061EB2480FA627511BE0500000089CFE8........8D5062EB0EBE0600000089CFE8........01C2FFC183F90575BF8815........B8........C383C702400FBEFFEBA589FABE02000000400FBEFFE8........01C2BE030000000FBEFAE8........01C2B8........80FA61741A80FA62B8........741084D2B8........BA........480F45C2C3C3C3
 FFC7400FBEFFE9.................................................. 00 0000 000B 
-:0000 nope1 
-^0007 __dootherthings 
+:0000 ialsohaveareffunc 
+^0007 iamalsoareffunc 
 FFC7400FBEFFE9.................................................. 00 0000 000B 
 :0000 ihaveareffunc 
 ^0007 iamareffunc 
 ---
 
+
 39F77D0601FEFFC7EBF6E988000000415455BE020000005389FB400FBEFF41BC:
   0. 00 0000 012E 0000:somefunc1 000F:dothings 0097:somefunc2 00A6:dootherthings
 8D04370FAFC6C34088FA31C980FA617511BE0400000089CFE8........8D5061:
-  0. 0F 55D2 00FC 0000:__getanum 0007:iamareffunc 0059:iamareffunc2 00AB:ihaveareffunc2 00B4:__dootherthings 00FA:nope2 00FB:nope3
+  0. 0F 55D2 00FC 0000:__getanum 0007:iamareffunc 0059:somejunk 00AB:ihaveareffunc2 00B4:iamalsoareffunc 00FA:nope2 00FB:nope3
 FFC7400FBEFFE9:
-  0. 00 0000 000B 0000:ihaveareffunc (REF 0007: iamareffunc)
-  1. 00 0000 000B 0000:nope1 (REF 0007: __dootherthings)
+  0. 00 0000 000B 0000:ialsohaveareffunc (REF 0007: iamalsoareffunc)
+  1. 00 0000 000B 0000:ihaveareffunc (REF 0007: iamareffunc)
 
 
 
-angr.analyses.sigscan | Scanning 0 addresses for signatures in 'Unnamed sample library'
-angr.analyses.sigscan | Scanning 20 funcs for signatures in 'Unnamed sample library'
-angr.analyses.sigscan | Checking 0x00400724
-angr.analyses.sigscan | Checking 0x00400720
-angr.analyses.sigscan | Checking 0x004006b0
-angr.analyses.sigscan | Checking 0x004006a6
-angr.analyses.sigscan | Checking 0x004006a5
-angr.analyses.sigscan | Checking 0x00400656
-angr.analyses.sigscan | Checking 0x00400604
-angr.analyses.sigscan | Checking 0x004005ab
-nampa.flirt_match     | found prefix: 8D04370FAFC6C34088FA31C980FA617511BE0400000089CFE8........8D5061
-nampa.flirt_match     | buff_size: 0x000012DD
-nampa.flirt_match     | Public Function: __getanum, addr=0x05AB, offset=0x0000
-angr.analyses.sigscan | Matched __getanum at 0x05ab
+INFO    | 2017-08-25 22:29:16,859 | angr.analyses.sigscan | Scanning 0 addresses for signatures in 'Unnamed sample library'
+INFO    | 2017-08-25 22:29:16,859 | angr.analyses.sigscan | Scanning 20 funcs for signatures in 'Unnamed sample library'
+DEBUG   | 2017-08-25 22:29:16,859 | angr.analyses.sigscan | Checking 0x00400724
+DEBUG   | 2017-08-25 22:29:16,860 | angr.analyses.sigscan | Checking 0x00400720
+DEBUG   | 2017-08-25 22:29:16,860 | angr.analyses.sigscan | Checking 0x004006b0
+DEBUG   | 2017-08-25 22:29:16,861 | angr.analyses.sigscan | Checking 0x004006a6
+DEBUG   | 2017-08-25 22:29:16,861 | angr.analyses.sigscan | Checking 0x004006a5
+DEBUG   | 2017-08-25 22:29:16,862 | angr.analyses.sigscan | Checking 0x00400656
+DEBUG   | 2017-08-25 22:29:16,862 | angr.analyses.sigscan | Checking 0x00400604
+DEBUG   | 2017-08-25 22:29:16,862 | angr.analyses.sigscan | Checking 0x004005ab
+DEBUG   | 2017-08-25 22:29:16,862 | nampa.flirt_match | found prefix: 8D04370FAFC6C34088FA31C980FA617511BE0400000089CFE8........8D5061
+DEBUG   | 2017-08-25 22:29:16,862 | nampa.flirt_match | buff_size: 0x000012DD
+DEBUG   | 2017-08-25 22:29:16,863 | nampa.flirt_match | Public Function: __getanum, addr=0x05AB, offset=0x0000
+DEBUG   | 2017-08-25 22:29:16,863 | angr.analyses.sigscan | Matched __getanum at 0x05ab
 <FlirtFunction: name=__getanum, offset=0x0000, negative_offset=False, is_local=False, is_collision=False has_ref_funk=False, parent_funk=None ref_funk=None>
-nampa.flirt_match     | Public Function: iamareffunc, addr=0x05AB, offset=0x0007
-angr.analyses.sigscan | Matched iamareffunc at 0x05b2
+DEBUG   | 2017-08-25 22:29:16,863 | nampa.flirt_match | Public Function: iamareffunc, addr=0x05AB, offset=0x0007
+DEBUG   | 2017-08-25 22:29:16,863 | angr.analyses.sigscan | Matched iamareffunc at 0x05b2
 <FlirtFunction: name=iamareffunc, offset=0x0007, negative_offset=False, is_local=False, is_collision=False has_ref_funk=False, parent_funk=None ref_funk=None>
-nampa.flirt_match     | Public Function: iamareffunc2, addr=0x05AB, offset=0x0059
-angr.analyses.sigscan | Matched iamareffunc2 at 0x0604
-<FlirtFunction: name=iamareffunc2, offset=0x0059, negative_offset=False, is_local=False, is_collision=False has_ref_funk=False, parent_funk=None ref_funk=None>
-nampa.flirt_match     | Public Function: ihaveareffunc2, addr=0x05AB, offset=0x00AB
-angr.analyses.sigscan | Matched ihaveareffunc2 at 0x0656
+DEBUG   | 2017-08-25 22:29:16,863 | nampa.flirt_match | Public Function: somejunk, addr=0x05AB, offset=0x0059
+DEBUG   | 2017-08-25 22:29:16,863 | angr.analyses.sigscan | Matched somejunk at 0x0604
+<FlirtFunction: name=somejunk, offset=0x0059, negative_offset=False, is_local=False, is_collision=False has_ref_funk=False, parent_funk=None ref_funk=None>
+DEBUG   | 2017-08-25 22:29:16,863 | nampa.flirt_match | Public Function: ihaveareffunc2, addr=0x05AB, offset=0x00AB
+DEBUG   | 2017-08-25 22:29:16,863 | angr.analyses.sigscan | Matched ihaveareffunc2 at 0x0656
 <FlirtFunction: name=ihaveareffunc2, offset=0x00AB, negative_offset=False, is_local=False, is_collision=False has_ref_funk=False, parent_funk=None ref_funk=None>
-nampa.flirt_match     | Public Function: __dootherthings, addr=0x05AB, offset=0x00B4
-angr.analyses.sigscan | Matched __dootherthings at 0x065f
-<FlirtFunction: name=__dootherthings, offset=0x00B4, negative_offset=False, is_local=False, is_collision=False has_ref_funk=False, parent_funk=None ref_funk=None>
-nampa.flirt_match     | Public Function: nope2, addr=0x05AB, offset=0x00FA
-angr.analyses.sigscan | Matched nope2 at 0x06a5
+DEBUG   | 2017-08-25 22:29:16,863 | nampa.flirt_match | Public Function: iamalsoareffunc, addr=0x05AB, offset=0x00B4
+DEBUG   | 2017-08-25 22:29:16,863 | angr.analyses.sigscan | Matched iamalsoareffunc at 0x065f
+<FlirtFunction: name=iamalsoareffunc, offset=0x00B4, negative_offset=False, is_local=False, is_collision=False has_ref_funk=False, parent_funk=None ref_funk=None>
+DEBUG   | 2017-08-25 22:29:16,864 | nampa.flirt_match | Public Function: nope2, addr=0x05AB, offset=0x00FA
+DEBUG   | 2017-08-25 22:29:16,864 | angr.analyses.sigscan | Matched nope2 at 0x06a5
 <FlirtFunction: name=nope2, offset=0x00FA, negative_offset=False, is_local=False, is_collision=False has_ref_funk=False, parent_funk=None ref_funk=None>
-nampa.flirt_match     | Public Function: nope3, addr=0x05AB, offset=0x00FB
-angr.analyses.sigscan | Matched nope3 at 0x06a6
+DEBUG   | 2017-08-25 22:29:16,864 | nampa.flirt_match | Public Function: nope3, addr=0x05AB, offset=0x00FB
+DEBUG   | 2017-08-25 22:29:16,864 | angr.analyses.sigscan | Matched nope3 at 0x06a6
 <FlirtFunction: name=nope3, offset=0x00FB, negative_offset=False, is_local=False, is_collision=False has_ref_funk=False, parent_funk=None ref_funk=None>
-angr.analyses.sigscan | Checking 0x00400546
-angr.analyses.sigscan | Checking 0x00400520
-angr.analyses.sigscan | Checking 0x00400500
-angr.analyses.sigscan | Checking 0x004004b2
-angr.analyses.sigscan | Checking 0x00400480
-angr.analyses.sigscan | Checking 0x00400479
-angr.analyses.sigscan | Checking 0x00400450
-angr.analyses.sigscan | Checking 0x0040043b
-nampa.flirt_match     | found prefix: FFC7400FBEFFE9
-nampa.flirt_match     | buff_size: 0x00001466
-nampa.flirt_match     | Public Function: ihaveareffunc, addr=0x043B, offset=0x0000
-angr.analyses.sigscan | Matched ihaveareffunc at 0x043b
-<FlirtFunction: name=ihaveareffunc, offset=0x0000, negative_offset=False, is_local=False, is_collision=False has_ref_funk=True, parent_funk=None ref_funk=iamareffunc>
-angr.analyses.sigscan | Checking 0x00400430
-nampa.flirt_match     | found prefix: FFC7400FBEFFE9
-nampa.flirt_match     | buff_size: 0x00001471
-nampa.flirt_match     | Public Function: ihaveareffunc, addr=0x0430, offset=0x0000
-angr.analyses.sigscan | ihaveareffunc at 0x00000430 is duplicate of ihaveareffunc at 0x0000043b
-angr.analyses.sigscan | Matched ihaveareffunc at 0x0430
-<FlirtFunction: name=ihaveareffunc, offset=0x0000, negative_offset=False, is_local=False, is_collision=False has_ref_funk=True, parent_funk=None ref_funk=iamareffunc>
-angr.analyses.sigscan | Checking 0x00400420
-angr.analyses.sigscan | Checking 0x004003f0
-angr.analyses.sigscan | Checking 0x004003c8
+DEBUG   | 2017-08-25 22:29:16,864 | angr.analyses.sigscan | Checking 0x00400546
+DEBUG   | 2017-08-25 22:29:16,864 | angr.analyses.sigscan | Checking 0x00400520
+DEBUG   | 2017-08-25 22:29:16,864 | angr.analyses.sigscan | Checking 0x00400500
+DEBUG   | 2017-08-25 22:29:16,865 | angr.analyses.sigscan | Checking 0x004004b2
+DEBUG   | 2017-08-25 22:29:16,865 | angr.analyses.sigscan | Checking 0x00400480
+DEBUG   | 2017-08-25 22:29:16,865 | angr.analyses.sigscan | Checking 0x00400479
+DEBUG   | 2017-08-25 22:29:16,866 | angr.analyses.sigscan | Checking 0x00400450
+DEBUG   | 2017-08-25 22:29:16,866 | angr.analyses.sigscan | Checking 0x0040043b
+DEBUG   | 2017-08-25 22:29:16,866 | nampa.flirt_match | found prefix: FFC7400FBEFFE9
+DEBUG   | 2017-08-25 22:29:16,866 | nampa.flirt_match | buff_size: 0x00001466
+DEBUG   | 2017-08-25 22:29:16,866 | nampa.flirt_match | Public Function: ialsohaveareffunc, addr=0x043B, offset=0x0000
+DEBUG   | 2017-08-25 22:29:16,866 | angr.analyses.sigscan | Matched ialsohaveareffunc at 0x043b
+<FlirtFunction: name=ialsohaveareffunc, offset=0x0000, negative_offset=False, is_local=False, is_collision=False has_ref_funk=True, parent_funk=None ref_funk=iamalsoareffunc>
+DEBUG   | 2017-08-25 22:29:16,866 | angr.analyses.sigscan | Checking 0x00400430
+DEBUG   | 2017-08-25 22:29:16,867 | nampa.flirt_match | found prefix: FFC7400FBEFFE9
+DEBUG   | 2017-08-25 22:29:16,867 | nampa.flirt_match | buff_size: 0x00001471
+DEBUG   | 2017-08-25 22:29:16,867 | nampa.flirt_match | Public Function: ialsohaveareffunc, addr=0x0430, offset=0x0000
+WARNING | 2017-08-25 22:29:16,867 | angr.analyses.sigscan | ialsohaveareffunc at 0x00000430 is duplicate of ialsohaveareffunc at 0x0000043b
+DEBUG   | 2017-08-25 22:29:16,867 | angr.analyses.sigscan | Matched ialsohaveareffunc at 0x0430
+<FlirtFunction: name=ialsohaveareffunc, offset=0x0000, negative_offset=False, is_local=False, is_collision=False has_ref_funk=True, parent_funk=None ref_funk=iamalsoareffunc>
+DEBUG   | 2017-08-25 22:29:16,867 | angr.analyses.sigscan | Checking 0x00400420
+DEBUG   | 2017-08-25 22:29:16,867 | angr.analyses.sigscan | Checking 0x004003f0
+DEBUG   | 2017-08-25 22:29:16,868 | angr.analyses.sigscan | Checking 0x004003c8
+
 
 
 
