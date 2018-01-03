@@ -1,6 +1,8 @@
 /*************************************************************************************************
  * Copyright 2017 Steven Lavoie, Jr (steven.lavoiejr _AT_ gmail.com)
  * 
+ * BLUF: MIT LICENSE
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this 
  * software and associated documentation files (the "Software"), to deal in the Software 
  * without restriction, including without limitation the rights to use, copy, modify, 
@@ -29,7 +31,7 @@
  * just "Program Database" and forgo the feature.
  * 
  * NOTE: Strings passed in to DBGPRINT in the variadic arguments must be wchar_t *, 
- * so you must use the _T() macro or L prefix.
+ * so you must use the _T() macro or L prefix for constants and %S for char * variables.
  */
 
 #pragma once
@@ -66,8 +68,15 @@ extern "C" {
 		_sntprintf_s(dbg_msg, DBGSIZE, _TRUNCATE, FMT, pre_msg);						\
 		PRINT(dbg_msg);																	\
 	}
+
+#	define err_when(condition, fmtString, ...) {										\
+		if(condition) {																	\
+			DBGPRINT("ERROR: " fmtString "\n", __VA_ARGS__); }							\
+			break;																		\
+		}
 #else
 #   define DBGPRINT(...)        // nothing
+#	define err_when(...)		// nothing
 #endif // DEBUG
 
 #ifdef __cplusplus
