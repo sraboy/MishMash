@@ -71,9 +71,10 @@ extern "C" {
 
 #	define err_when(condition, fmtString, ...) {										\
 		if(condition) {																	\
-			DBGPRINT("ERROR: " fmtString "\n", __VA_ARGS__); }							\
+			DBGPRINT("ERROR: " fmtString "\n", __VA_ARGS__);							\
 			break;																		\
-		}
+		}																				\
+	}
 #else
 #   define DBGPRINT(...)        // nothing
 #	define err_when(...)		// nothing
