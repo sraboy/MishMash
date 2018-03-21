@@ -1,0 +1,6 @@
+{
+    "port": "COM6",
+    "board": "arduino:avr:uno",
+    "output": "../build",
+    "sketch": "mpu6050_test.ino"
+}
