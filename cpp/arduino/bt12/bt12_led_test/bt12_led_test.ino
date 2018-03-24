@@ -50,23 +50,24 @@
 int led_state = 0;
 
 void setup() {
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, LOW);
-  Serial.begin(9600); // HC05 and family are 38400 but DX-BT12 is 9600
-  Serial.println("Setup done");
+	pinMode(LED_BUILTIN, OUTPUT);
+	digitalWrite(LED_BUILTIN, LOW);
+	Serial.begin(9600); // HC05 is 38400 but DX-BT12 is 9600
+	Serial.println("Setup done");
 }
 void loop() {
-  if(Serial.available() > 0){ // Checks whether data is comming from the serial port
-    led_state = Serial.read(); // Reads the data from the serial port
- }
- if (led_state == '0') {
-  digitalWrite(LED_BUILTIN, LOW); // Turn LED OFF
-  Serial.println("LED: OFF"); // Send back, to the phone, the String "LED: ON"
-  led_state = 0;
- } else if (led_state == '1') {
-  digitalWrite(LED_BUILTIN, HIGH);
-  Serial.println("LED: ON");;
-  led_state = 0;
- } 
+	if (Serial.available() > 0){ 
+		led_state = Serial.read();
+	}
+	
+	if (led_state == '0') {
+		digitalWrite(LED_BUILTIN, LOW);
+		Serial.println("LED: OFF");
+		led_state = 0;
+	} else if (led_state == '1') {
+		digitalWrite(LED_BUILTIN, HIGH);
+		Serial.println("LED: ON");
+		led_state = 0;
+	} 
 }
 
