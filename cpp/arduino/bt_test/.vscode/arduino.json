@@ -1,6 +1,0 @@
-{
-    "board": "arduino:avr:uno",
-    "port": "COM6",
-    "sketch": "bt_test.ino",
-    "output": "../build"
-}
