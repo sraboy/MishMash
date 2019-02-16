@@ -1,0 +1,72 @@
+diff --git a/qhexview.cpp b/qhexview.cpp
+index 3f16810..a69da53 100644
+--- a/qhexview.cpp
++++ b/qhexview.cpp
+@@ -28,6 +28,7 @@ The license chosen is at the discretion of the user of this software.
+ #include <QSignalMapper>
+ #include <QTextStream>
+ #include <QtGlobal>
++#include <QtEndian>
+ 
+ #include <cctype>
+ #include <climits>
+@@ -626,6 +627,21 @@ int64_t QHexView::pixelToWord(int x, int y) const {
+ 	return word;
+ }
+ 
++//------------------------------------------------------------------------------
++// Name: setToolTip
++//------------------------------------------------------------------------------
++void QHexView::updateToolTip() {
++	if(selectedBytesSize() <= 0) {
++		return;
++	}
++
++	auto sb = selectedBytes();
++	QString tooltip = "Hex: " + sb.toHex();
++	tooltip += "\nUInt32: " + QString::number(qFromLittleEndian<quint32>(sb.data()));
++	tooltip += "\nInt32: " + QString::number(qFromLittleEndian<qint32>(sb.data()));
++	setToolTip(tooltip);
++}
++
+ //------------------------------------------------------------------------------
+ // Name: mouseDoubleClickEvent
+ //------------------------------------------------------------------------------
+@@ -666,6 +682,8 @@ void QHexView::mouseDoubleClickEvent(QMouseEvent *event) {
+ 			viewport()->update();
+ 		}
+ 	}
++
++	updateToolTip();
+ }
+ 
+ //------------------------------------------------------------------------------
+@@ -702,6 +720,8 @@ void QHexView::mousePressEvent(QMouseEvent *event) {
+ 	if (event->button() == Qt::RightButton) {
+ 
+ 	}
++
++	updateToolTip();
+ }
+ 
+ //------------------------------------------------------------------------------
+@@ -743,6 +763,7 @@ void QHexView::mouseMoveEvent(QMouseEvent *event) {
+ 
+ 		}
+ 		viewport()->update();
++		updateToolTip();
+ 	}
+ }
+ 
+diff --git a/qhexview.h b/qhexview.h
+index 3e14d18..2fcf31b 100644
+--- a/qhexview.h
++++ b/qhexview.h
+@@ -157,6 +157,7 @@ private:
+ 	void drawHexDumpToBuffer(QTextStream &stream, uint64_t offset, uint64_t size, const QByteArray &row_data) const;
+ 	void ensureVisible(int64_t index);
+ 	void updateScrollbars();
++	void updateToolTip();
+ 
+ private:
+ 	std::unique_ptr<CommentServerBase> commentServer_;

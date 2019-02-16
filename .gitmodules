@@ -1,0 +1,3 @@
+[submodule "cpp/qt5/qhexview"]
+	path = cpp/qt5/qhexview
+	url = git@github.com:eteran/qhexview
